@@ -2,18 +2,22 @@ package com.state_machine.core;
 
 import org.apache.commons.logging.Log;
 import org.ros.concurrent.CancellableLoop;
+import org.ros.exception.ServiceNotFoundException;
 import org.ros.message.MessageListener;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
+import org.ros.node.service.ServiceClient;
+import org.ros.node.topic.Publisher;
 import org.ros.node.topic.Subscriber;
 
-import std_msgs.*;
-import std_msgs.String;
+import java.util.HashMap;
+import java.util.Map;
 
 public class StateMachineNode extends AbstractNodeMain {
 
     private StateMachine stateMachine;
+    private Map<String, State> states;
 
     @Override
     public GraphName getDefaultNodeName() {
@@ -22,17 +26,9 @@ public class StateMachineNode extends AbstractNodeMain {
 
     @Override
     public void onStart(ConnectedNode connectedNode) {
-        stateMachine = new StateMachine();
+        states = initializeStates(connectedNode);
+        stateMachine = new StateMachine(states.get("Arm"), states.get("Arm"));
         final Log log = connectedNode.getLog();
-
-        Subscriber<std_msgs.String> subscriber = connectedNode.newSubscriber("chatter", std_msgs.String._TYPE);
-        subscriber.addMessageListener(new MessageListener<String>() {
-            @Override
-            public void onNewMessage(std_msgs.String message) {
-                log.info("I heard: \"" + message.getData() + "\"");
-
-            }
-        });
 
         connectedNode.executeCancellableLoop(new CancellableLoop() {
             //private int sequenceNumber;
@@ -59,6 +55,17 @@ public class StateMachineNode extends AbstractNodeMain {
             }
         });
 
+    }
 
+    public Map<String, State> initializeStates(ConnectedNode node) {
+        Map<String, State> allStates = new HashMap<>();
+        try {
+            ServiceClient armingService = node.newServiceClient("mavros/cmd/arming", std_msgs.String._TYPE);
+            allStates.put("Arm", new ArmState(armingService));
+        }
+        catch(ServiceNotFoundException ex){
+            node.getLog().error("Service not found", ex);
+        }
+        return allStates;
     }
 }

@@ -8,12 +8,4 @@ public abstract class State {
 
     public abstract void exitAction();
 
-    public void update(){
-        failsafeCheck();
-        loopAction();
-    }
-
-    public boolean failsafeCheck(){
-        return false;
-    }
 }
