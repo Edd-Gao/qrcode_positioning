@@ -25,11 +25,13 @@ mainClassName = 'org.ros.RosRun'
  cover the patch version only to avoid breakages due to api changes
  which usually occur on minor and major version numbers.
 */
+repositories {
+  flatDir { dirs 'libs' }
+}
 
 dependencies {
-  /* An external maven artifact dependency */
   compile 'org.ros.rosjava_core:rosjava:[0.2,0.3)'
-  /* Example of a local subproject dependency */ 
-  /* compile project(':sibling_gradle_project') */
+  compile ':mavros_msgs-0.17.0'
+  compile 'com.google.code.gson:gson:[2.6,)'
 }
 
