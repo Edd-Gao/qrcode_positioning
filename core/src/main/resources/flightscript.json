@@ -1,0 +1,16 @@
+{
+  "start": [
+    {
+      "action": "ArmAction"
+    },
+    {
+      "action": "TakeOffAction"
+    },
+    {
+      "action": "LandingAction"
+    },
+    {
+      "action": "DisarmAction"
+    }
+  ]
+}

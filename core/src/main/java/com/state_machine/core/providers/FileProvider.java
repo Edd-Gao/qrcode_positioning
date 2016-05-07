@@ -11,6 +11,12 @@ public class FileProvider {
     private Properties config;
 
     public FileProvider(){
+        initConfig();
+    }
+
+    Properties getConfig(){ return config; }
+
+    private void initConfig(){
         Properties properties = new Properties();
         InputStream input = null;
         try{
@@ -26,8 +32,5 @@ public class FileProvider {
             }
         }
         config = properties;
-
     }
-
-    Properties getConfig(){ return config; }
 }

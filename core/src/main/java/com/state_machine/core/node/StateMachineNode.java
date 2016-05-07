@@ -46,7 +46,7 @@ public class StateMachineNode extends AbstractNodeMain {
         }
 
         stateMachine = new StateMachine(
-                stateProvider.getIdleState(),
+                stateProvider.getScriptedState(),
                 stateProvider.getShutdownState(),
                 stateProvider.getManualControlState(),
                 log,

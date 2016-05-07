@@ -33,5 +33,6 @@ dependencies {
   compile 'org.ros.rosjava_core:rosjava:[0.2,0.3)'
   compile ':mavros_msgs-0.17.0'
   compile 'com.google.code.gson:gson:[2.6,)'
+  testCompile 'junit:junit:[4.11, )'
 }
 
