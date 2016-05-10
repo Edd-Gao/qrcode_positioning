@@ -1,4 +1,4 @@
-package com.state_machine.core.script;
+package com.state_machine.core.actions.util;
 
 public class Waypoint {
 

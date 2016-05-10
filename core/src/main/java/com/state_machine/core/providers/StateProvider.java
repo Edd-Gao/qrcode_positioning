@@ -1,15 +1,13 @@
 package com.state_machine.core.providers;
 
 import com.state_machine.core.actions.Action;
-import com.state_machine.core.script.FlightScriptParser;
-import com.state_machine.core.states.IdleState;
-import com.state_machine.core.states.ManualControlState;
-import com.state_machine.core.states.ScriptedState;
-import com.state_machine.core.states.ShutdownState;
+import com.state_machine.core.actions.util.Waypoint;
+import com.state_machine.core.states.*;
 import org.apache.commons.logging.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 
 public class StateProvider {
 
@@ -17,10 +15,12 @@ public class StateProvider {
     private ShutdownState shutdownState;
     private ManualControlState manualControlState;
     private RosServiceProvider serviceProvider;
+    private ActionProvider actionProvider;
     private Log log;
 
     public StateProvider(ActionProvider actionProvider, RosServiceProvider serviceProvider, Log log){
         this.serviceProvider = serviceProvider;
+        this.actionProvider = actionProvider;
         this.log = log;
 
         List<Action> prereqs = new ArrayList<>();
@@ -44,5 +44,12 @@ public class StateProvider {
 
     public ScriptedState getScriptedState(List<Action> actions) {
         return new ScriptedState(actions, serviceProvider.getSetModeService(), log);
+    }
+
+    public WaypointState getWaypointState(Queue<Waypoint> waypoints){
+        List<Action> prereqs = new ArrayList<>();
+        prereqs.add(actionProvider.getArmAction());
+        prereqs.add(actionProvider.getTakeoffAction());
+        return new WaypointState(waypoints, actionProvider, prereqs, serviceProvider.getSetModeService(), log);
     }
 }

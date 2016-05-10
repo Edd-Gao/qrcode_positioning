@@ -1,4 +1,4 @@
-package com.state_machine.core.node;
+package com.state_machine.core;
 
 import com.state_machine.core.droneState.DroneStateTracker;
 import com.state_machine.core.providers.*;
@@ -11,6 +11,7 @@ import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
 
 import java.util.List;
+import java.util.Queue;
 
 public class StateMachineNode extends AbstractNodeMain {
 
@@ -21,7 +22,7 @@ public class StateMachineNode extends AbstractNodeMain {
     private ActionProvider actionProvider;
     private StateProvider stateProvider;
     private FileProvider fileProvider;
-    private List<State> script;
+    private Queue<State> stateQueue;
 
     @Override
     public GraphName getDefaultNodeName() {
@@ -43,14 +44,14 @@ public class StateMachineNode extends AbstractNodeMain {
             actionProvider = new ActionProvider(serviceProvider, droneStateTracker);
             stateProvider = new StateProvider(actionProvider, serviceProvider, log);
             fileProvider = new FileProvider(actionProvider, stateProvider, log);
-            script = fileProvider.readScript("flightscript.json");
+            stateQueue = fileProvider.readScript("flightscript.json");
         } catch(Exception e) {
             log.fatal("Initialization failed", e);
             System.exit(1);
         }
 
         State initialState = stateProvider.getIdleState();
-        if(!script.isEmpty()) initialState = script.get(0);
+        if(!stateQueue.isEmpty()) initialState = stateQueue.remove();
 
         stateMachine = new StateMachine(
                 initialState,
@@ -63,6 +64,11 @@ public class StateMachineNode extends AbstractNodeMain {
         node.executeCancellableLoop(new CancellableLoop() {
             @Override
             protected void loop() throws InterruptedException {
+                if(!stateQueue.isEmpty()
+                   && stateMachine.getCurrentState().isIdling()
+                   && stateMachine.getCurrentState().isSafeToExit()){
+                    stateMachine.setState(stateQueue.remove());
+                }
                 stateMachine.update(node.getCurrentTime());
                 Thread.sleep(33);
             }

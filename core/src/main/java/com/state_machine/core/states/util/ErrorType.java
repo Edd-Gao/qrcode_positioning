@@ -1,4 +1,4 @@
-package com.state_machine.core.states;
+package com.state_machine.core.states.util;
 
 public enum ErrorType {
     NoError,

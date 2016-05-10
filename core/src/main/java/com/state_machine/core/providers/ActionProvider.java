@@ -1,13 +1,13 @@
 package com.state_machine.core.providers;
 
-import com.state_machine.core.actions.ArmAction;
-import com.state_machine.core.actions.DisarmAction;
-import com.state_machine.core.actions.LandingAction;
-import com.state_machine.core.actions.TakeoffAction;
+import com.state_machine.core.actions.*;
 import com.state_machine.core.droneState.DroneStateTracker;
+import com.state_machine.core.actions.util.Waypoint;
 
-public class ActionProvider {
+public class ActionProvider implements FlyToActionFactory {
 
+    private RosServiceProvider serviceProvider;
+    private DroneStateTracker stateTracker;
     private ArmAction armAction;
     private DisarmAction disarmAction;
     private LandingAction landingAction;
@@ -17,6 +17,8 @@ public class ActionProvider {
             RosServiceProvider serviceProvider,
             DroneStateTracker stateTracker
     ){
+        this.serviceProvider = serviceProvider;
+        this.stateTracker = stateTracker;
         armAction = new ArmAction(serviceProvider.getArmingService(), stateTracker);
         disarmAction = new DisarmAction(serviceProvider.getArmingService(), stateTracker);
         takeoffAction = new TakeoffAction(serviceProvider.getTakeoffService(), stateTracker);
@@ -27,4 +29,8 @@ public class ActionProvider {
     public DisarmAction getDisarmAction(){ return disarmAction; }
     public TakeoffAction getTakeoffAction(){ return takeoffAction; }
     public LandingAction getLandingAction(){ return landingAction; }
+
+    public FlyToAction getFlyToAction(Waypoint objective){
+        return new FlyToAction(objective, stateTracker);
+    }
 }

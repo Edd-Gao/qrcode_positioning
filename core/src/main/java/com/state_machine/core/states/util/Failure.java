@@ -1,5 +1,6 @@
-package com.state_machine.core.states;
+package com.state_machine.core.states.util;
 
+import com.state_machine.core.states.util.ErrorType;
 import org.ros.message.Time;
 
 public class Failure {

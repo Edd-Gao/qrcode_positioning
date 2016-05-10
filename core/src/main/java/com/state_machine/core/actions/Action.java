@@ -1,5 +1,6 @@
 package com.state_machine.core.actions;
 
+import com.state_machine.core.actions.util.ActionStatus;
 import org.ros.message.Time;
 
 public abstract class Action {
@@ -12,9 +13,7 @@ public abstract class Action {
         status = ActionStatus.Inactive;
     }
 
-    public void enterAction() {}
+    public void enterAction() { status = ActionStatus.Inactive; }
 
-    public void exitAction(){
-        status = ActionStatus.Inactive;
-    }
+    public void exitAction(){}
 }

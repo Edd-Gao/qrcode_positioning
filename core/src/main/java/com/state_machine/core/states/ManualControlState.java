@@ -1,6 +1,8 @@
 package com.state_machine.core.states;
 
 import com.state_machine.core.actions.Action;
+import com.state_machine.core.states.util.ErrorType;
+import com.state_machine.core.states.util.Failure;
 import mavros_msgs.SetModeRequest;
 import mavros_msgs.SetModeResponse;
 import org.apache.commons.lang.NotImplementedException;
@@ -45,6 +47,8 @@ public class ManualControlState extends State {
     public boolean isSafeToExit(){
         return true;
     }
+
+    public boolean isIdling() { return false; }
 
     public String toString() {
         return "ManualControlState";

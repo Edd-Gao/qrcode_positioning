@@ -1,7 +1,10 @@
 package com.state_machine.core.states;
 
 import com.state_machine.core.actions.Action;
-import com.state_machine.core.actions.ActionStatus;
+import com.state_machine.core.actions.util.ActionStatus;
+import com.state_machine.core.states.util.ErrorType;
+import com.state_machine.core.states.util.Failure;
+import com.state_machine.core.states.util.StateHandle;
 import mavros_msgs.SetModeRequest;
 import mavros_msgs.SetModeResponse;
 import org.apache.commons.logging.Log;
@@ -10,7 +13,7 @@ import org.ros.node.service.ServiceClient;
 
 import java.util.List;
 
-public abstract class State {
+public abstract class State implements StateHandle {
 
     protected List<Action> prerequisites;
     protected ServiceClient<SetModeRequest, SetModeResponse> setModeService;
@@ -42,6 +45,8 @@ public abstract class State {
     }
 
     public void enterAction(){
+        lastFailure = null;
+        currentAction = null;
         if (prerequisites.size() > 0)
             setAction(prerequisites.get(0));
     }
@@ -49,14 +54,14 @@ public abstract class State {
     protected abstract void chooseNextAction(Time time);
 
     public void exitAction(){
-        lastFailure = null;
         if (currentAction != null) {
             currentAction.exitAction();
-            currentAction = null;
         }
     }
 
     public abstract boolean isSafeToExit();
+
+    public abstract boolean isIdling();
 
     public boolean isConnected(){
         return setModeService.isConnected();

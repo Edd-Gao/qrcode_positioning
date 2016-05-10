@@ -1,6 +1,8 @@
 package com.state_machine.core.states;
 
 import com.state_machine.core.actions.Action;
+import com.state_machine.core.states.util.ErrorType;
+import com.state_machine.core.states.util.Failure;
 import mavros_msgs.SetModeRequest;
 import mavros_msgs.SetModeResponse;
 import org.apache.commons.lang.NotImplementedException;
@@ -41,6 +43,8 @@ public class IdleState extends State {
         });
         super.enterAction();
     }
+
+    public boolean isIdling() { return true; }
 
     public boolean isSafeToExit(){
         return true;

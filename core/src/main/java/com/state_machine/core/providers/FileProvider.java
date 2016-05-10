@@ -1,13 +1,13 @@
 package com.state_machine.core.providers;
 
-import com.state_machine.core.script.FlightScriptParser;
+import com.state_machine.core.io.FlightScriptParser;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
+import java.util.Queue;
 
 import com.state_machine.core.states.State;
 import org.apache.commons.logging.Log;
@@ -24,7 +24,7 @@ public class FileProvider {
 
     public Properties getConfig(){ return config; }
 
-    public List<State> readScript(String filePath){
+    public Queue<State> readScript(String filePath){
         return flightScriptParser.parseFile(filePath);
     }
 

@@ -2,9 +2,10 @@ package com.state_machine.core.stateMachine;
 
 
 import com.state_machine.core.droneState.DroneStateTracker;
-import com.state_machine.core.states.ErrorType;
+import com.state_machine.core.states.util.ErrorType;
 import com.state_machine.core.states.State;
-import com.state_machine.core.states.StateException;
+import com.state_machine.core.states.util.StateException;
+import com.state_machine.core.states.util.StateHandle;
 import org.apache.commons.logging.Log;
 import org.ros.message.Time;
 
@@ -83,7 +84,7 @@ public class StateMachine {
         newState.enterAction();
     }
 
-    public String currentState(){
-        return currentState.toString();
+    public StateHandle getCurrentState(){
+        return currentState;
     }
 }

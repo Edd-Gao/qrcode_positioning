@@ -1,16 +1,15 @@
-package com.state_machine.core.script;
+package com.state_machine.core.io;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.state_machine.core.actions.Action;
+import com.state_machine.core.actions.util.Waypoint;
 import com.state_machine.core.providers.ActionProvider;
 import com.state_machine.core.providers.StateProvider;
 import com.state_machine.core.states.State;
 import org.apache.commons.logging.Log;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class FlightScriptParser {
 
@@ -26,7 +25,7 @@ public class FlightScriptParser {
         this.log = log;
     }
 
-    public List<State> parseFile(String filePath){
+    public Queue<State> parseFile(String filePath){
         Scanner scanner = null;
         StringBuilder json = new StringBuilder();
         List<StateJsonRepresentation> stateInfo = new ArrayList<>();
@@ -37,11 +36,11 @@ public class FlightScriptParser {
             }
             stateInfo = gson.fromJson(json.toString(), JsonStateList.class).queue;
         } catch (Exception e){
-            log.warn("Could not read flight script at " + filePath, e);
+            log.warn("Could not read flight io at " + filePath, e);
         } finally {
             if(scanner != null) scanner.close();
         }
-        List<State> states = new ArrayList<>();
+        Queue<State> states = new ArrayDeque<>();
         for(StateJsonRepresentation s : stateInfo){
             State state = parseState(s);
             if(state != null) states.add(state);
@@ -64,8 +63,15 @@ public class FlightScriptParser {
                     if(action != null) actions.add(action);
                 }
                 return stateProvider.getScriptedState(actions);
+            case "WaypointState":
+                Queue<Waypoint> waypoints = new ArrayDeque<>();
+                for(List<Float> coordinates : repr.waypoints){
+                    Waypoint waypoint = new Waypoint(coordinates.get(0), coordinates.get(1), coordinates.get(2));
+                    waypoints.add(waypoint);
+                }
+                return stateProvider.getWaypointState(waypoints);
             default:
-                log.warn("Flight script contained invalid state: " + repr.state);
+                log.warn("Flight io contained invalid state: " + repr.state);
                 return null;
         }
     }
@@ -80,24 +86,30 @@ public class FlightScriptParser {
                 return actionProvider.getTakeoffAction();
             case "LandingAction":
                 return actionProvider.getLandingAction();
+            case "FlyToAction":
+                List<Float> xyz = repr.objective;
+                Waypoint objective = new Waypoint(xyz.get(0), xyz.get(1), xyz.get(2));
+                return actionProvider.getFlyToAction(objective);
             default:
-                log.warn("Flight script contained invalid action: " + repr.action);
+                log.warn("Flight io contained invalid action: " + repr.action);
                 return null;
         }
     }
 
     private class JsonStateList {
-        public List<StateJsonRepresentation> queue;
+        List<StateJsonRepresentation> queue;
     }
 
     private class StateJsonRepresentation {
-        public String state;
-        public List<ActionJsonRepresentation> scriptedActions;
+        String state;
+        List<ActionJsonRepresentation> scriptedActions;
+        List<List<Float>> waypoints;
         //other types of parameters go here by name
     }
 
     private class ActionJsonRepresentation {
-        public String action;
+        String action;
+        List<Float> objective;
         //possible parameters go here by name
     }
 }

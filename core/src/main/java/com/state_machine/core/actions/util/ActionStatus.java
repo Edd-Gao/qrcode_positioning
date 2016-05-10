@@ -1,4 +1,4 @@
-package com.state_machine.core.actions;
+package com.state_machine.core.actions.util;
 
 public enum ActionStatus {
     Waiting,

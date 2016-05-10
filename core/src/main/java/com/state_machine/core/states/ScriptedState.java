@@ -1,6 +1,8 @@
 package com.state_machine.core.states;
 
 import com.state_machine.core.actions.Action;
+import com.state_machine.core.states.util.ErrorType;
+import com.state_machine.core.states.util.Failure;
 import mavros_msgs.SetModeRequest;
 import mavros_msgs.SetModeResponse;
 import org.apache.commons.logging.Log;
@@ -24,6 +26,8 @@ public class ScriptedState extends State {
     }
 
     public boolean isSafeToExit(){ return true; }
+
+    public boolean isIdling() { return prerequisites.indexOf(currentAction) == -1; }
 
     @Override public void enterAction(){
         SetModeRequest request = setModeService.newMessage();
