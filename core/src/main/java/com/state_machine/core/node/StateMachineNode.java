@@ -1,16 +1,16 @@
 package com.state_machine.core.node;
 
 import com.state_machine.core.droneState.DroneStateTracker;
-import com.state_machine.core.providers.ActionProvider;
-import com.state_machine.core.providers.RosServiceProvider;
-import com.state_machine.core.providers.RosSubscriberProvider;
-import com.state_machine.core.providers.StateProvider;
+import com.state_machine.core.providers.*;
 import com.state_machine.core.stateMachine.StateMachine;
+import com.state_machine.core.states.State;
 import org.apache.commons.logging.Log;
 import org.ros.concurrent.CancellableLoop;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
+
+import java.util.List;
 
 public class StateMachineNode extends AbstractNodeMain {
 
@@ -20,6 +20,8 @@ public class StateMachineNode extends AbstractNodeMain {
     private DroneStateTracker droneStateTracker;
     private ActionProvider actionProvider;
     private StateProvider stateProvider;
+    private FileProvider fileProvider;
+    private List<State> script;
 
     @Override
     public GraphName getDefaultNodeName() {
@@ -40,13 +42,18 @@ public class StateMachineNode extends AbstractNodeMain {
             );
             actionProvider = new ActionProvider(serviceProvider, droneStateTracker);
             stateProvider = new StateProvider(actionProvider, serviceProvider, log);
+            fileProvider = new FileProvider(actionProvider, stateProvider, log);
+            script = fileProvider.readScript("flightscript.json");
         } catch(Exception e) {
             log.fatal("Initialization failed", e);
             System.exit(1);
         }
 
+        State initialState = stateProvider.getIdleState();
+        if(!script.isEmpty()) initialState = script.get(0);
+
         stateMachine = new StateMachine(
-                stateProvider.getScriptedState(),
+                initialState,
                 stateProvider.getShutdownState(),
                 stateProvider.getManualControlState(),
                 log,

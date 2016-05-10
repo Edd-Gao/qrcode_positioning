@@ -1,8 +1,7 @@
 package com.state_machine.core.providers;
 
 import com.state_machine.core.actions.Action;
-import com.state_machine.core.actions.ArmAction;
-import com.state_machine.core.script.FlightScript;
+import com.state_machine.core.script.FlightScriptParser;
 import com.state_machine.core.states.IdleState;
 import com.state_machine.core.states.ManualControlState;
 import com.state_machine.core.states.ScriptedState;
@@ -10,7 +9,6 @@ import com.state_machine.core.states.ShutdownState;
 import org.apache.commons.logging.Log;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class StateProvider {
@@ -18,9 +16,13 @@ public class StateProvider {
     private IdleState idleState;
     private ShutdownState shutdownState;
     private ManualControlState manualControlState;
-    private ScriptedState scriptedState;
+    private RosServiceProvider serviceProvider;
+    private Log log;
 
     public StateProvider(ActionProvider actionProvider, RosServiceProvider serviceProvider, Log log){
+        this.serviceProvider = serviceProvider;
+        this.log = log;
+
         List<Action> prereqs = new ArrayList<>();
         prereqs.add(actionProvider.getArmAction());
         this.idleState = new IdleState(prereqs, serviceProvider.getSetModeService(), log);
@@ -32,9 +34,6 @@ public class StateProvider {
 
         prereqs = new ArrayList<>();
         this.manualControlState = new ManualControlState(prereqs, serviceProvider.getSetModeService(), log);
-
-        FlightScript script = new FlightScript("flightscript.json", actionProvider, log);
-        scriptedState = new ScriptedState(script.getActions(), serviceProvider.getSetModeService(), log);
     }
 
     public IdleState getIdleState() { return idleState; }
@@ -43,5 +42,7 @@ public class StateProvider {
 
     public ManualControlState getManualControlState() { return manualControlState; }
 
-    public ScriptedState getScriptedState() { return scriptedState; }
+    public ScriptedState getScriptedState(List<Action> actions) {
+        return new ScriptedState(actions, serviceProvider.getSetModeService(), log);
+    }
 }

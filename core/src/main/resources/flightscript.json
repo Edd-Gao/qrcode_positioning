@@ -1,16 +1,18 @@
 {
-  "start": [
+  "queue": [
     {
-      "action": "ArmAction"
+      "state": "ScriptedState",
+      "scriptedActions": [
+        {
+          "action": "ArmAction"
+        },
+        {
+          "action": "TakeOffAction"
+        }
+      ]
     },
     {
-      "action": "TakeOffAction"
-    },
-    {
-      "action": "LandingAction"
-    },
-    {
-      "action": "DisarmAction"
+      "state": "ShutdownState"
     }
   ]
 }
