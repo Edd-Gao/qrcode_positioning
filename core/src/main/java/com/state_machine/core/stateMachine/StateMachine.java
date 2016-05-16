@@ -33,28 +33,40 @@ public class StateMachine {
                 currentState.update(time);
                 break;
             case ConnectionFailure:
-                logger.warn("Switching to manual control due to losing the wireless connection");
-                forceState(manualControl);
+                if (currentState != manualControl && currentState != emergencyLanding) {
+                    logger.warn("Switching to manual control due to losing the wireless connection");
+                    forceState(manualControl);
+                }
                 break;
             case DangerousPosition:
-                logger.warn("Switching to manual control due to perceived danger");
-                forceState(manualControl);
+                if (currentState != manualControl && currentState != emergencyLanding) {
+                    logger.warn("Switching to manual control due to perceived danger");
+                    forceState(manualControl);
+                }
                 break;
             case BatteryLow:
-                logger.warn("Starting emergency landing due to critical battery level");
-                forceState(emergencyLanding);
+                if (currentState != emergencyLanding) {
+                    logger.warn("Starting emergency landing due to critical battery level");
+                    forceState(emergencyLanding);
+                }
                 break;
             case ControllerSignalLoss:
-                logger.warn("Starting emergency landing due to losing the signal of the manual controller");
-                forceState(emergencyLanding);
+                if (currentState != emergencyLanding) {
+                    logger.warn("Starting emergency landing due to losing the signal of the manual controller");
+                    forceState(emergencyLanding);
+                }
                 break;
             case MotorFailure:
-                logger.warn("Starting emergency landing due to motor malfunction");
-                forceState(emergencyLanding);
+                if (currentState != emergencyLanding) {
+                    logger.warn("Starting emergency landing due to motor malfunction");
+                    forceState(emergencyLanding);
+                }
                 break;
             case ActionFailure:
-                logger.warn("Switching to manual control due to "+ currentState.getCurrentAction().toString()  +" failing");
-                forceState(manualControl);
+                if (currentState != manualControl && currentState != emergencyLanding) {
+                    logger.warn("Switching to manual control due to " + currentState.getCurrentAction().toString() + " failing");
+                    forceState(manualControl);
+                }
                 break;
         }
     }
