@@ -23,17 +23,11 @@ public class StateProvider {
         this.actionProvider = actionProvider;
         this.log = log;
 
-        List<Action> prereqs = new ArrayList<>();
-        prereqs.add(actionProvider.getArmAction());
-        this.idleState = new IdleState(prereqs, serviceProvider.getSetModeService(), log);
+        this.idleState = new IdleState(actionProvider, serviceProvider.getSetModeService(), log);
 
-        prereqs = new ArrayList<>();
-        prereqs.add(actionProvider.getLandingAction());
-        prereqs.add(actionProvider.getDisarmAction());
-        this.shutdownState = new ShutdownState(prereqs, serviceProvider.getSetModeService(), log);
+        this.shutdownState = new ShutdownState(actionProvider, serviceProvider.getSetModeService(), log);
 
-        prereqs = new ArrayList<>();
-        this.manualControlState = new ManualControlState(prereqs, serviceProvider.getSetModeService(), log);
+        this.manualControlState = new ManualControlState(actionProvider, serviceProvider.getSetModeService(), log);
     }
 
     public IdleState getIdleState() { return idleState; }
@@ -43,13 +37,10 @@ public class StateProvider {
     public ManualControlState getManualControlState() { return manualControlState; }
 
     public ScriptedState getScriptedState(List<Action> actions) {
-        return new ScriptedState(actions, serviceProvider.getSetModeService(), log);
+        return new ScriptedState(actions, actionProvider, serviceProvider.getSetModeService(), log);
     }
 
     public WaypointState getWaypointState(Queue<Waypoint> waypoints){
-        List<Action> prereqs = new ArrayList<>();
-        prereqs.add(actionProvider.getArmAction());
-        prereqs.add(actionProvider.getTakeoffAction());
-        return new WaypointState(waypoints, actionProvider, prereqs, serviceProvider.getSetModeService(), log);
+        return new WaypointState(waypoints, actionProvider, serviceProvider.getSetModeService(), log);
     }
 }

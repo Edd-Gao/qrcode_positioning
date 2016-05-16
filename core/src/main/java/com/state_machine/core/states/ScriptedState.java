@@ -1,6 +1,7 @@
 package com.state_machine.core.states;
 
 import com.state_machine.core.actions.Action;
+import com.state_machine.core.providers.ActionProvider;
 import com.state_machine.core.states.util.ErrorType;
 import com.state_machine.core.states.util.Failure;
 import mavros_msgs.SetModeRequest;
@@ -16,9 +17,11 @@ import java.util.List;
 public class ScriptedState extends State {
 
     public ScriptedState(List<Action> scriptedActions,
+                         ActionProvider actionProvider,
                          ServiceClient<SetModeRequest, SetModeResponse> setModeService,
                          Log log){
-        super(scriptedActions, setModeService, log);
+        super(actionProvider, setModeService, log);
+        prerequisites = scriptedActions;
     }
 
     public void chooseNextAction(Time time){

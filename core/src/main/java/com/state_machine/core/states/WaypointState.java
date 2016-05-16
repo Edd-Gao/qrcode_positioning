@@ -1,6 +1,7 @@
 package com.state_machine.core.states;
 
 import com.state_machine.core.actions.Action;
+import com.state_machine.core.providers.ActionProvider;
 import com.state_machine.core.providers.FlyToActionFactory;
 import com.state_machine.core.actions.util.Waypoint;
 import com.state_machine.core.states.util.ErrorType;
@@ -23,13 +24,14 @@ public class WaypointState extends State {
     Waypoint objective;
 
     public WaypointState(Queue<Waypoint> waypoints,
-                         FlyToActionFactory flyToActionFactory,
-                         List<Action> prerequisites,
+                         ActionProvider actionProvider,
                          ServiceClient<SetModeRequest, SetModeResponse> setModeService,
                          Log log) {
-        super(prerequisites, setModeService, log);
-        this.factory = flyToActionFactory;
+        super(actionProvider, setModeService, log);
+        this.factory = actionProvider;
         this.waypoints = waypoints;
+        prerequisites.add(actionProvider.getArmAction());
+        prerequisites.add(actionProvider.getTakeoffAction());
     }
 
     protected void chooseNextAction(Time time){
