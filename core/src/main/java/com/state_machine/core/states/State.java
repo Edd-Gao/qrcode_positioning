@@ -19,7 +19,7 @@ public abstract class State implements StateHandle {
 
     protected List<Action> prerequisites;
     protected ServiceClient<SetModeRequest, SetModeResponse> setModeService;
-    protected Action currentAction;
+    protected Action currentAction, nextAction;
     protected Time currentTime;
     protected Failure lastFailure;
     protected Log log;
@@ -78,7 +78,9 @@ public abstract class State implements StateHandle {
             case Success:
                 int index = prerequisites.indexOf(currentAction);
                 if (index > 0 && index < prerequisites.size() - 1) {
-                    currentAction = prerequisites.get(index + 1);
+                    nextAction = prerequisites.get(index + 1);
+                    currentAction.exitAction();
+                    currentAction = nextAction;
                 }
                 else {
                     currentAction = null;
