@@ -4,6 +4,7 @@ import com.state_machine.core.actions.ArmAction;
 import mavros_msgs.*;
 import org.ros.exception.ServiceNotFoundException;
 import org.ros.node.ConnectedNode;
+import org.ros.node.parameter.ParameterTree;
 import org.ros.node.service.ServiceClient;
 
 public class RosServiceProvider {
@@ -12,12 +13,14 @@ public class RosServiceProvider {
     private ServiceClient<CommandTOLRequest, CommandTOLResponse> takeoffService;
     private ServiceClient<CommandTOLRequest, CommandTOLResponse> landingService;
     private ServiceClient<SetModeRequest, SetModeResponse> setModeService;
+    private ServiceClient<ParamPullRequest, ParamPullResponse> paramPullService;
 
     public RosServiceProvider(ConnectedNode node) throws ServiceNotFoundException {
         armingService = node.newServiceClient("mavros/cmd/arming", CommandBool._TYPE);
         takeoffService = node.newServiceClient("mavros/cmd/takeoff", CommandTOL._TYPE);
         landingService = node.newServiceClient("mavros/cmd/land", CommandTOL._TYPE);
         setModeService = node.newServiceClient("mavros/set_mode", SetMode._TYPE);
+        paramPullService = node.newServiceClient("mavros/param/pull",ParamPull._TYPE);
     }
 
     public ServiceClient<CommandBoolRequest, CommandBoolResponse> getArmingService() {
@@ -35,4 +38,7 @@ public class RosServiceProvider {
     public ServiceClient<SetModeRequest, SetModeResponse> getSetModeService(){
         return setModeService;
     }
+
+    public ServiceClient<ParamPullRequest, ParamPullResponse> getParamPullService() {return paramPullService;}
+
 }
