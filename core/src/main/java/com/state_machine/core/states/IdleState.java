@@ -30,7 +30,7 @@ public class IdleState extends State {
 
     @Override public void enterAction(){
         SetModeRequest request = setModeService.newMessage();
-        request.setCustomMode("OFFBOARD");
+        request.setCustomMode("STABILIZE");
         setModeService.call(request, new ServiceResponseListener<SetModeResponse>() {
             @Override
             public void onSuccess(SetModeResponse setModeResponse) {
