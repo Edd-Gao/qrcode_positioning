@@ -15,12 +15,14 @@ public class StateProvider {
     private ShutdownState shutdownState;
     private ManualControlState manualControlState;
     private RosServiceProvider serviceProvider;
+    private RosPublisherProvider rosPublisherProvider;
     private ActionProvider actionProvider;
     private Log log;
 
-    public StateProvider(ActionProvider actionProvider, RosServiceProvider serviceProvider, Log log){
+    public StateProvider(ActionProvider actionProvider, RosServiceProvider serviceProvider, RosPublisherProvider rosPublisherProvider, Log log){
         this.serviceProvider = serviceProvider;
         this.actionProvider = actionProvider;
+        this.rosPublisherProvider = rosPublisherProvider;
         this.log = log;
 
         this.idleState = new IdleState(actionProvider, serviceProvider.getSetModeService(), log);

@@ -34,17 +34,20 @@ public class StateMachineNode extends AbstractNodeMain {
         this.node = node;
         this.log = node.getLog();
         try {
+
             RosServiceProvider serviceProvider = new RosServiceProvider(node);
             RosSubscriberProvider subscriberProvider = new RosSubscriberProvider(node);
+            RosPublisherProvider publisherProvider = new RosPublisherProvider(node);
             droneStateTracker = new DroneStateTracker(
                     subscriberProvider.getStateSubscriber(),
                     subscriberProvider.getBatteryStatusSubscriber(),
                     subscriberProvider.getExtendedStateSubscriber()
             );
-            actionProvider = new ActionProvider(serviceProvider, droneStateTracker);
-            stateProvider = new StateProvider(actionProvider, serviceProvider, log);
+            actionProvider = new ActionProvider(serviceProvider, droneStateTracker, fileProvider, publisherProvider);
+            stateProvider = new StateProvider(actionProvider, serviceProvider, publisherProvider, log);
             fileProvider = new FileProvider(actionProvider, stateProvider, log);
             stateQueue = fileProvider.readScript("flightscript.json");
+
         } catch(Exception e) {
             log.fatal("Initialization failed", e);
             System.exit(1);

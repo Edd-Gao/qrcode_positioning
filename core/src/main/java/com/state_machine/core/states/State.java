@@ -78,9 +78,7 @@ public abstract class State implements StateHandle {
             case Success:
                 int index = prerequisites.indexOf(currentAction);
                 if (index > 0 && index < prerequisites.size() - 1) {
-                    nextAction = prerequisites.get(index + 1);
-                    currentAction.exitAction();
-                    currentAction = nextAction;
+                    setAction(prerequisites.get(index + 1));
                 }
                 else {
                     currentAction = null;
