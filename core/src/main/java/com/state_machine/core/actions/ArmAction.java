@@ -2,40 +2,25 @@ package com.state_machine.core.actions;
 
 import com.state_machine.core.actions.util.ActionStatus;
 import com.state_machine.core.droneState.DroneStateTracker;
-import com.state_machine.core.providers.FileProvider;
-import com.state_machine.core.providers.RosPublisherProvider;
 import mavros_msgs.CommandBoolRequest;
 import mavros_msgs.CommandBoolResponse;
-import mavros_msgs.OverrideRCIn;
 import org.ros.exception.RemoteException;
 import org.ros.message.Time;
 import org.ros.node.service.ServiceClient;
 import org.ros.node.service.ServiceResponseListener;
-import org.ros.node.topic.Publisher;
-
-import java.util.Properties;
 
 public class ArmAction extends Action {
 
     private DroneStateTracker stateTracker;
     private ServiceClient<CommandBoolRequest, CommandBoolResponse> armingService;
-    private FileProvider fileProvider;
-    private RosPublisherProvider publisherProvider;
-    private Properties config;
-    private Publisher<OverrideRCIn> overrideRCInPublisher;
 
     public ArmAction(
             ServiceClient<CommandBoolRequest, CommandBoolResponse> armingService,
-            DroneStateTracker stateTracker, FileProvider fileProvider,
-            RosPublisherProvider publisherProvider
+            DroneStateTracker stateTracker
     ){
         super();
         this.stateTracker = stateTracker;
         this.armingService = armingService;
-        this.fileProvider = fileProvider;
-        this.publisherProvider = publisherProvider;
-        this.config = fileProvider.getConfig();
-        this.overrideRCInPublisher = publisherProvider.getOverrideRCInPubliser();
     }
 
     public ActionStatus loopAction(Time time){

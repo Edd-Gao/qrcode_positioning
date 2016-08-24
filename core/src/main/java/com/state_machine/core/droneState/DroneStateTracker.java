@@ -8,9 +8,9 @@ import org.ros.node.topic.Subscriber;
 
 public class DroneStateTracker {
 
-    private boolean armed = false;
-    private float battery;
-    private DroneLanded droneLanded;
+    private boolean armed = false;      //the drone arming status
+    private float battery;              //battery remaining
+    private DroneLanded droneLanded;    //the drone landing status
 
     public DroneStateTracker(
             Subscriber<State> stateSubscriber,

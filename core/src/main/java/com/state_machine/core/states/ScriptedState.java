@@ -16,39 +16,21 @@ import java.util.List;
 
 public class ScriptedState extends State {
 
+
     public ScriptedState(List<Action> scriptedActions,
                          ActionProvider actionProvider,
                          ServiceClient<SetModeRequest, SetModeResponse> setModeService,
                          Log log){
         super(actionProvider, setModeService, log);
-        prerequisites = scriptedActions;
+        prerequisites.add(actionProvider.getSetFCUModeAction("STABILIZE"));
+        prerequisites.addAll(scriptedActions);
     }
 
-    public void chooseNextAction(Time time){
-        currentAction = prerequisites.get(prerequisites.size() - 1);
-    }
+    public void chooseNextAction(Time time){}
 
     public boolean isSafeToExit(){ return true; }
 
-    public boolean isIdling() { return prerequisites.indexOf(currentAction) == -1; }
-
-    @Override public void enterAction(){
-        SetModeRequest request = setModeService.newMessage();
-        request.setCustomMode("OFFBOARD");
-        setModeService.call(request, new ServiceResponseListener<SetModeResponse>() {
-            @Override
-            public void onSuccess(SetModeResponse setModeResponse) {
-
-            }
-
-            @Override
-            public void onFailure(RemoteException e) {
-                log.warn("Failed to set mode", e);
-                lastFailure = new Failure(ErrorType.ConnectionFailure, currentTime);
-            }
-        });
-        super.enterAction();
-    }
+    public boolean isIdling(){ return false;}
 
     public String toString() {
         return "ScriptedState";

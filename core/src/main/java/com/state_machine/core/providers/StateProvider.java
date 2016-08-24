@@ -5,15 +5,13 @@ import com.state_machine.core.actions.util.Waypoint;
 import com.state_machine.core.states.*;
 import org.apache.commons.logging.Log;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
 public class StateProvider {
 
     private IdleState idleState;
-    private ShutdownState shutdownState;
-    private ManualControlState manualControlState;
+    private EmergencyLandingState emergencyLandingState;
     private RosServiceProvider serviceProvider;
     private RosPublisherProvider rosPublisherProvider;
     private ActionProvider actionProvider;
@@ -25,24 +23,17 @@ public class StateProvider {
         this.rosPublisherProvider = rosPublisherProvider;
         this.log = log;
 
-        this.idleState = new IdleState(actionProvider, serviceProvider.getSetModeService(), log);
+        this.idleState = new IdleState(actionProvider, serviceProvider.getSetFCUModeService(), log);
+        this.emergencyLandingState = new EmergencyLandingState(actionProvider, serviceProvider.getSetFCUModeService(), log);
 
-        this.shutdownState = new ShutdownState(actionProvider, serviceProvider.getSetModeService(), log);
-
-        this.manualControlState = new ManualControlState(actionProvider, serviceProvider.getSetModeService(), log);
     }
 
     public IdleState getIdleState() { return idleState; }
 
-    public ShutdownState getShutdownState() { return shutdownState; }
-
-    public ManualControlState getManualControlState() { return manualControlState; }
+    public EmergencyLandingState getEmergencyLandingState(){ return emergencyLandingState;}
 
     public ScriptedState getScriptedState(List<Action> actions) {
-        return new ScriptedState(actions, actionProvider, serviceProvider.getSetModeService(), log);
+        return new ScriptedState(actions, actionProvider, serviceProvider.getSetFCUModeService(), log);
     }
 
-    public WaypointState getWaypointState(Queue<Waypoint> waypoints){
-        return new WaypointState(waypoints, actionProvider, serviceProvider.getSetModeService(), log);
-    }
 }

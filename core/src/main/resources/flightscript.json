@@ -7,19 +7,20 @@
           "action": "ArmAction"
         },
         {
-          "action": "TakeOffAction"
+          "action": "TakeOffAction",
+          "target_heightcm": 500
+        },
+        {
+          "action": "FlyToAction",
+          "waypoint": [100,100,600]
+        },
+        {
+          "action": "LandAction"
+        },
+        {
+          "action": "DisarmAction"
         }
       ]
-    },
-    {
-      "state": "WaypointState",
-      "waypoints": [
-        [0.0, 0.0, 0.0],
-        [1.0, 2.0, 3.0]
-      ]
-    },
-    {
-      "state": "ShutdownState"
     }
   ]
 }

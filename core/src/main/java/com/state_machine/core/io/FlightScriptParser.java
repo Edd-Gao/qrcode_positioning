@@ -52,10 +52,6 @@ public class FlightScriptParser {
         switch(repr.state){
             case "IdleState":
                 return stateProvider.getIdleState();
-            case "ManualControlState":
-                return stateProvider.getManualControlState();
-            case "ShutdownState":
-                return stateProvider.getShutdownState();
             case "ScriptedState":
                 List<Action> actions = new ArrayList<>();
                 for(ActionJsonRepresentation a : repr.scriptedActions){
@@ -63,13 +59,6 @@ public class FlightScriptParser {
                     if(action != null) actions.add(action);
                 }
                 return stateProvider.getScriptedState(actions);
-            case "WaypointState":
-                Queue<Waypoint> waypoints = new ArrayDeque<>();
-                for(List<Float> coordinates : repr.waypoints){
-                    Waypoint waypoint = new Waypoint(coordinates.get(0), coordinates.get(1), coordinates.get(2));
-                    waypoints.add(waypoint);
-                }
-                return stateProvider.getWaypointState(waypoints);
             default:
                 log.warn("Flight io contained invalid state: " + repr.state);
                 return null;
@@ -83,11 +72,11 @@ public class FlightScriptParser {
             case "DisarmAction":
                 return actionProvider.getDisarmAction();
             case "TakeoffAction":
-                return actionProvider.getTakeoffAction();
+                return actionProvider.getTakeoffAction(repr.target_heightcm);
             case "LandingAction":
                 return actionProvider.getLandingAction();
             case "FlyToAction":
-                List<Float> xyz = repr.objective;
+                List<Float> xyz = repr.waypoint;
                 Waypoint objective = new Waypoint(xyz.get(0), xyz.get(1), xyz.get(2));
                 return actionProvider.getFlyToAction(objective);
             default:
@@ -103,13 +92,13 @@ public class FlightScriptParser {
     private class StateJsonRepresentation {
         String state;
         List<ActionJsonRepresentation> scriptedActions;
-        List<List<Float>> waypoints;
         //other types of parameters go here by name
     }
 
     private class ActionJsonRepresentation {
         String action;
-        List<Float> objective;
+        Float target_heightcm;
+        List<Float> waypoint;
         //possible parameters go here by name
     }
 }

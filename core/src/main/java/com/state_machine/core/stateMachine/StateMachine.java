@@ -13,19 +13,18 @@ public class StateMachine {
 
     private State currentState;
     private State emergencyLanding;
-    private State manualControl;
     private Log logger;
     private DroneStateTracker tracker;
 
-    public StateMachine(State initialState, State emergencyLanding, State manualControl, Log log, DroneStateTracker tracker){
+    public StateMachine(State initialState, State emergencyLanding, Log log, DroneStateTracker tracker){
         this.emergencyLanding = emergencyLanding;
-        this.manualControl = manualControl;
         this.logger = log;
         this.tracker = tracker;
         currentState = initialState;
         initialState.enterAction();
     }
 
+    //Update the statemachine
     public void update(Time time){
         ErrorType error = failsafeCheck();
         switch (error) {
@@ -33,15 +32,15 @@ public class StateMachine {
                 currentState.update(time);
                 break;
             case ConnectionFailure:
-                if (currentState != manualControl && currentState != emergencyLanding) {
-                    logger.warn("Switching to manual control due to losing the wireless connection");
-                    forceState(manualControl);
+                if (currentState != emergencyLanding) {
+                    logger.warn("Switching to emergency landing control due to losing the wireless connection");
+                    forceState(emergencyLanding);
                 }
                 break;
             case DangerousPosition:
-                if (currentState != manualControl && currentState != emergencyLanding) {
+                if (currentState != emergencyLanding) {
                     logger.warn("Switching to manual control due to perceived danger");
-                    forceState(manualControl);
+                    forceState(emergencyLanding);
                 }
                 break;
             case BatteryLow:
@@ -63,9 +62,9 @@ public class StateMachine {
                 }
                 break;
             case ActionFailure:
-                if (currentState != manualControl && currentState != emergencyLanding) {
+                if (currentState != emergencyLanding) {
                     logger.warn("Switching to manual control due to " + currentState.getCurrentAction().toString() + " failing");
-                    forceState(manualControl);
+                    forceState(emergencyLanding);
                 }
                 break;
         }

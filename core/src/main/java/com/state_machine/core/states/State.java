@@ -53,6 +53,7 @@ public abstract class State implements StateHandle {
             setAction(prerequisites.get(0));
     }
 
+    //choose next action to be executed. only used after the prerequisites are done.
     protected abstract void chooseNextAction(Time time);
 
     public void exitAction(){
@@ -61,23 +62,24 @@ public abstract class State implements StateHandle {
         }
     }
 
+    //The state is finished, everything is clean and ready to exit.
     public abstract boolean isSafeToExit();
-
+    //The state is idling and doing nothing.
     public abstract boolean isIdling();
-
+    //The services that are used in the state are all connected
     public boolean isConnected(){
         return setModeService.isConnected();
     }
-
+    //get last failure occured.
     public Failure getLastFailure(){ return lastFailure; }
-
+    //get the current excuting action
     public Action getCurrentAction(){ return currentAction; }
-
+    //handle the result of an action.
     private boolean handleActionResult(ActionStatus status) {
         switch (status) {
             case Success:
                 int index = prerequisites.indexOf(currentAction);
-                if (index > 0 && index < prerequisites.size() - 1) {
+                if (index >= 0 && index < prerequisites.size() - 1) {
                     setAction(prerequisites.get(index + 1));
                 }
                 else {
@@ -94,7 +96,7 @@ public abstract class State implements StateHandle {
                 return false;
         }
     }
-
+    //set next action
     protected void setAction(Action newAction) {
         if (currentAction != null) {
             currentAction.exitAction();
