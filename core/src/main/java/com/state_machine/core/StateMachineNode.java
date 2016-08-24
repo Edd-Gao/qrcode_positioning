@@ -75,7 +75,7 @@ public class StateMachineNode extends AbstractNodeMain {
                     stateMachine.setState(stateQueue.remove());
                 }
                 stateMachine.update(node.getCurrentTime());
-                Thread.sleep(33);
+                Thread.sleep(20);
             }
         });
     }

@@ -1,10 +1,11 @@
 package com.state_machine.core.states;
 
+import com.state_machine.core.droneState.DroneLanded;
+import com.state_machine.core.droneState.DroneStateTracker;
 import com.state_machine.core.providers.ActionProvider;
 import mavros_msgs.SetModeRequest;
 import mavros_msgs.SetModeResponse;
 import org.apache.commons.logging.Log;
-import org.ros.message.Time;
 import org.ros.node.service.ServiceClient;
 
 /**
@@ -12,24 +13,26 @@ import org.ros.node.service.ServiceClient;
  */
 public class EmergencyLandingState extends State {
 
+    private DroneStateTracker stateTracker;
+
     public EmergencyLandingState(
             ActionProvider actionProvider,
             ServiceClient<SetModeRequest, SetModeResponse> setModeService,
-            Log log
+            Log log,
+            DroneStateTracker stateTracker
     ){
         super(actionProvider, setModeService, log);
-        prerequisites.add(actionProvider.getSetFCUModeAction("STABILIZE"));
-        prerequisites.add(actionProvider.getLandingAction());
-        prerequisites.add(actionProvider.getDisarmAction());
+        this.stateTracker = stateTracker;
+        actionQueue.add(actionProvider.getSetFCUModeAction("STABILIZE"));
+        actionQueue.add(actionProvider.getLandingAction());
+        actionQueue.add(actionProvider.getDisarmAction());
     }
-
-    public void chooseNextAction(Time time){
-    }
-
-    public boolean isIdling() { return true; }
 
     public boolean isSafeToExit(){
-        return true;
+        if(stateTracker.getDroneLanded()== DroneLanded.OnGround && !stateTracker.getArmed())
+            return true;
+        else
+            return false;
     }
 
     public String toString() {

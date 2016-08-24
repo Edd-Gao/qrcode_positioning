@@ -32,7 +32,7 @@ public class StateProvider {
 
     public EmergencyLandingState getEmergencyLandingState(){ return emergencyLandingState;}
 
-    public ScriptedState getScriptedState(List<Action> actions) {
+    public ScriptedState getScriptedState(Queue<Action> actions) {
         return new ScriptedState(actions, actionProvider, serviceProvider.getSetFCUModeService(), log);
     }
 

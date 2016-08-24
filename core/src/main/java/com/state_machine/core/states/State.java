@@ -12,12 +12,12 @@ import org.apache.commons.logging.Log;
 import org.ros.message.Time;
 import org.ros.node.service.ServiceClient;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.ArrayDeque;
+import java.util.Queue;
 
 public abstract class State implements StateHandle {
 
-    protected List<Action> prerequisites;
+    protected Queue<Action> actionQueue;
     protected ServiceClient<SetModeRequest, SetModeResponse> setModeService;
     protected Action currentAction, nextAction;
     protected Time currentTime;
@@ -27,34 +27,25 @@ public abstract class State implements StateHandle {
     public State(ActionProvider actionProvider,
                  ServiceClient<SetModeRequest, SetModeResponse> setModeService,
                  Log log){
-        prerequisites = new ArrayList<Action>();
+        actionQueue = new ArrayDeque<Action>();
         this.setModeService = setModeService;
         this.log = log;
     }
 
     final public void update(Time time) {
         currentTime = time;
-        if(currentAction == null) {
-            chooseNextAction(time);
-        }
-
         if(currentAction != null) {
             ActionStatus status = currentAction.loopAction(time);
-            while(handleActionResult(status) && currentAction != null){
-                currentAction.loopAction(time);
-            }
+            handleActionResult(status, time);
         }
     }
 
     public void enterAction(){
         lastFailure = null;
         currentAction = null;
-        if (prerequisites.size() > 0)
-            setAction(prerequisites.get(0));
+        if (!actionQueue.isEmpty())
+            setAction(actionQueue.remove());
     }
-
-    //choose next action to be executed. only used after the prerequisites are done.
-    protected abstract void chooseNextAction(Time time);
 
     public void exitAction(){
         if (currentAction != null) {
@@ -65,7 +56,7 @@ public abstract class State implements StateHandle {
     //The state is finished, everything is clean and ready to exit.
     public abstract boolean isSafeToExit();
     //The state is idling and doing nothing.
-    public abstract boolean isIdling();
+    public boolean isIdling(){ return (currentAction == null);};
     //The services that are used in the state are all connected
     public boolean isConnected(){
         return setModeService.isConnected();
@@ -75,14 +66,12 @@ public abstract class State implements StateHandle {
     //get the current excuting action
     public Action getCurrentAction(){ return currentAction; }
     //handle the result of an action.
-    private boolean handleActionResult(ActionStatus status) {
+    private boolean handleActionResult(ActionStatus status, Time time) {
         switch (status) {
             case Success:
-                int index = prerequisites.indexOf(currentAction);
-                if (index >= 0 && index < prerequisites.size() - 1) {
-                    setAction(prerequisites.get(index + 1));
-                }
-                else {
+                if (!actionQueue.isEmpty()) {
+                    setAction(actionQueue.poll());
+                }else{
                     currentAction = null;
                 }
                 return true;

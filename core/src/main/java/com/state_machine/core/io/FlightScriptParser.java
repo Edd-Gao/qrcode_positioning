@@ -53,7 +53,7 @@ public class FlightScriptParser {
             case "IdleState":
                 return stateProvider.getIdleState();
             case "ScriptedState":
-                List<Action> actions = new ArrayList<>();
+                Queue<Action> actions = new ArrayDeque<>();
                 for(ActionJsonRepresentation a : repr.scriptedActions){
                     Action action = parseAction(a);
                     if(action != null) actions.add(action);
