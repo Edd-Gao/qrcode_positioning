@@ -1,0 +1,6 @@
+#Switch mode service for hover controller node
+
+string newMode
+float32 target_height
+---
+bool success
