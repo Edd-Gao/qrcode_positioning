@@ -71,7 +71,7 @@ public class FlightScriptParser {
                 return actionProvider.getArmAction();
             case "DisarmAction":
                 return actionProvider.getDisarmAction();
-            case "TakeoffAction":
+            case "TakeOffAction":
                 return actionProvider.getTakeoffAction(repr.target_heightcm);
             case "LandingAction":
                 return actionProvider.getLandingAction();

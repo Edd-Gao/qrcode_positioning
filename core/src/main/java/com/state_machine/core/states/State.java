@@ -91,6 +91,6 @@ public abstract class State implements StateHandle {
             currentAction.exitAction();
         }
         currentAction = newAction;
-        newAction.enterAction();
+        newAction.enterAction(currentTime);
     }
 }

@@ -8,11 +8,9 @@ import org.ros.time.TimeProvider;
 public abstract class Action {
 
     // timeStamp records the start time of an action.
-    protected Time timeStamp;
+    protected Time timeStamp = new Time(0,0);
 
     protected ActionStatus status;
-
-    protected TimeProvider timeProvider;
 
     protected static final Duration enterTimeOut = new Duration(0,50000);
 
@@ -22,7 +20,7 @@ public abstract class Action {
         status = ActionStatus.Inactive;
     }
 
-    public ActionStatus enterAction() { status = ActionStatus.Inactive; return status;}
+    public ActionStatus enterAction(Time time) { status = ActionStatus.Inactive; return status;}
 
     public void exitAction(){}
 }

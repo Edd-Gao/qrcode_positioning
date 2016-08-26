@@ -36,7 +36,7 @@ public class FlyToAction extends Action {
         this.timeOut = timeOut;
     }
 
-    public ActionStatus enterAction() {
+    public ActionStatus enterAction(Time time) {
 
         status = ActionStatus.Inactive;
 
@@ -69,18 +69,7 @@ public class FlyToAction extends Action {
                 };
                 hoverControllerSwitchModeService.call(message, listener);
 
-                status = ActionStatus.Waiting;
-                timeStamp = timeProvider.getCurrentTime();
-
-                while (timeProvider.getCurrentTime().subtract(timeStamp).compareTo(enterTimeOut) <= 0 && status == ActionStatus.Waiting) {
-                }
-
-                if (status == ActionStatus.Failure) {
-                    return status;
-                }else if(status == ActionStatus.Waiting){
-                    status = ActionStatus.Failure;
-                    return status;
-                }
+                //while (timeProvider.getCurrentTime().subtract(timeStamp).compareTo(enterTimeOut) <= 0 && status == ActionStatus.Waiting) {}
             }
 
             if(!hoverControllerWayPointService.isConnected()) return ActionStatus.ConnectionFailure;
@@ -93,6 +82,7 @@ public class FlyToAction extends Action {
             ServiceResponseListener<WayPointResponse> listener = new ServiceResponseListener<WayPointResponse>() {
                 @Override
                 public void onSuccess(WayPointResponse wayPointResponse) {
+
                     status = ActionStatus.Success;
                 }
 
@@ -103,19 +93,13 @@ public class FlyToAction extends Action {
             };
             hoverControllerWayPointService.call(wayPointRequest, listener);
 
-            status = ActionStatus.Waiting;
-            timeStamp = timeProvider.getCurrentTime();
+            timeStamp = time;
 
-            while (timeProvider.getCurrentTime().subtract(timeStamp).compareTo(enterTimeOut) <= 0 && status == ActionStatus.Waiting) {
-            }
+            //while (timeProvider.getCurrentTime().subtract(timeStamp).compareTo(enterTimeOut) <= 0 && status == ActionStatus.Waiting) {
+            //}
 
-            if(status == ActionStatus.Success){
-                timeStamp = timeProvider.getCurrentTime();
-                return status;
-            }else{
-                status = ActionStatus.Failure;
-                return status;
-            }
+                status = ActionStatus.Inactive;
+                return ActionStatus.Success;
 
         }else{
             status = ActionStatus.Failure;
@@ -125,11 +109,13 @@ public class FlyToAction extends Action {
 
     public ActionStatus loopAction(Time time){
         if(stateTracker.getDroneLanded() == DroneLanded.InAir
-                && rosServerProvider.getCurrentAction() == "WP"
+                && rosServerProvider.getCurrentAction().equals("WP")
                 && rosServerProvider.getActionFinished()){
             status = ActionStatus.Success;
+            //reset action status
+            rosServerProvider.resetActionStatus();
             return status;
-        }else if(timeProvider.getCurrentTime().subtract(timeStamp).compareTo(timeOut) >= 0){
+        }else if(time.subtract(timeStamp).compareTo(timeOut) >= 0){
             // if current time substracts timestamp is above timeout duration
             status = ActionStatus.Failure;
             return status;
@@ -137,5 +123,9 @@ public class FlyToAction extends Action {
             status = ActionStatus.Waiting;
             return status;
         }
+    }
+
+    public String toString(){
+        return "FlyToAction";
     }
 }

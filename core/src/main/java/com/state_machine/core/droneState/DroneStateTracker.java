@@ -8,7 +8,7 @@ import org.ros.node.topic.Subscriber;
 
 public class DroneStateTracker {
 
-    private boolean armed = false;      //the drone arming status
+    private boolean armed;      //the drone arming status
     private float battery;              //battery remaining
     private DroneLanded droneLanded;    //the drone landing status
 
@@ -47,6 +47,10 @@ public class DroneStateTracker {
             }
         };
         extendedStateSubscriber.addMessageListener(extendedStateListener);
+
+        armed = false;
+        battery = -1;
+        droneLanded = DroneLanded.Undefined;
     }
 
     public boolean getArmed(){
@@ -54,4 +58,11 @@ public class DroneStateTracker {
     }
     public float getRemaining() {return battery;}
     public DroneLanded getDroneLanded() {return droneLanded;}
+
+    public boolean initialized(){
+        if (battery == -1 || droneLanded == DroneLanded.Undefined)
+            return false;
+        else
+            return true;
+    }
 }

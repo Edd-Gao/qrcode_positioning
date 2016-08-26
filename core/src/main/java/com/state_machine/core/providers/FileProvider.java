@@ -5,7 +5,6 @@ import com.state_machine.core.io.FlightScriptParser;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Properties;
 import java.util.Queue;
 
@@ -32,7 +31,8 @@ public class FileProvider {
         Properties properties = new Properties();
         InputStream input = null;
         try{
-            input = new FileInputStream("config.properties");
+            //todo: change the path format to relative path
+            input = new FileInputStream("/home/firefly/workspace/DroneProject/drone-control/src/state_machine/core/src/main/java/com/state_machine/core/providers/config.properties");
             properties.load(input);
         } catch (Exception e){
             e.printStackTrace();

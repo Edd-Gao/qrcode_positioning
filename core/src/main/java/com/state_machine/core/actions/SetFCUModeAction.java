@@ -52,4 +52,8 @@ public class SetFCUModeAction extends Action{
             return status;
         }
     }
+
+    public String toString(){
+        return "SetFCUModeAction";
+    }
 }

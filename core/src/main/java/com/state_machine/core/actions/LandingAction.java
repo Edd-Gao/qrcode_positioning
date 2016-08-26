@@ -30,7 +30,7 @@ public class LandingAction extends Action {
     }
 
     @Override
-    public ActionStatus enterAction(){
+    public ActionStatus enterAction(Time time){
         status = ActionStatus.Inactive;
 
         if(stateTracker.getDroneLanded() == DroneLanded.OnGround){
@@ -40,14 +40,13 @@ public class LandingAction extends Action {
             if(!hoverControllerSwitchModeService.isConnected()) return ActionStatus.ConnectionFailure;
 
             SwitchModeRequest message = hoverControllerSwitchModeService.newMessage();
-            message.setNewMode("Land");
+            message.setNewMode("LAND");
             message.setTargetHeight(0);
 
             ServiceResponseListener<SwitchModeResponse> listener = new ServiceResponseListener<SwitchModeResponse>() {
                 @Override
                 public void onSuccess(SwitchModeResponse switchModeResponse) {
                     status = ActionStatus.Success;
-                    timeStamp = timeProvider.getCurrentTime();
                 }
 
                 @Override
@@ -55,28 +54,24 @@ public class LandingAction extends Action {
             };
             hoverControllerSwitchModeService.call(message, listener);
 
-            status = ActionStatus.Waiting;
-            timeStamp = timeProvider.getCurrentTime();
+            timeStamp = time;
 
-            while(timeProvider.getCurrentTime().subtract(timeStamp).compareTo(enterTimeOut) <= 0 && status == ActionStatus.Waiting){}
+            //while(timeProvider.getCurrentTime().subtract(timeStamp).compareTo(enterTimeOut) <= 0 && status == ActionStatus.Waiting){}
 
-            if (status == ActionStatus.Success){
-                status = ActionStatus.Inactive;
-                return ActionStatus.Success;
-            }else{
-                status = ActionStatus.Failure;
-                return status;
-            }
+            status = ActionStatus.Inactive;
+            return ActionStatus.Success;
+
         }
     }
 
     public ActionStatus loopAction(Time time){
         if(stateTracker.getDroneLanded() == DroneLanded.OnGround
-                && rosServerProvider.getCurrentAction() == "LAND"
+                && rosServerProvider.getCurrentAction().equals("LAND")
                 && rosServerProvider.getActionFinished()){
             status = ActionStatus.Success;
+            rosServerProvider.resetActionStatus();
             return status;
-        }else if(timeProvider.getCurrentTime().subtract(timeStamp).compareTo(timeOut) >= 0){
+        }else if(time.subtract(timeStamp).compareTo(timeOut) >= 0){
             // if current time substracts timestamp is above timeout duration
             status = ActionStatus.Failure;
             return status;

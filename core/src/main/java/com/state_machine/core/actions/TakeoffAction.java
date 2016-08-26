@@ -12,6 +12,8 @@ import org.ros.message.Time;
 import org.ros.node.service.ServiceClient;
 import org.ros.node.service.ServiceResponseListener;
 
+import java.util.Objects;
+
 public class TakeoffAction extends Action {
 
     private DroneStateTracker stateTracker;
@@ -35,7 +37,7 @@ public class TakeoffAction extends Action {
     }
 
     @Override
-    public ActionStatus enterAction() {
+    public ActionStatus enterAction(Time time) {
         status = ActionStatus.Inactive;
 
         if(stateTracker.getDroneLanded() == DroneLanded.InAir){
@@ -52,7 +54,6 @@ public class TakeoffAction extends Action {
                 @Override
                 public void onSuccess(SwitchModeResponse switchModeResponse) {
                     status = ActionStatus.Success;
-                    timeStamp = timeProvider.getCurrentTime();
                 }
 
                 @Override
@@ -60,28 +61,21 @@ public class TakeoffAction extends Action {
             };
             hoverControllerSwitchModeService.call(message, listener);
 
-            status = ActionStatus.Waiting;
-            timeStamp = timeProvider.getCurrentTime();
+            timeStamp = time;
 
-            while(timeProvider.getCurrentTime().subtract(timeStamp).compareTo(enterTimeOut) <= 0 && status == ActionStatus.Waiting){}
-
-            if (status == ActionStatus.Success){
-                status = ActionStatus.Inactive;
-                return ActionStatus.Success;
-            }else{
-                status = ActionStatus.Failure;
-                return status;
-            }
+            status = ActionStatus.Inactive;
+            return ActionStatus.Success;
         }
     }
 
     public ActionStatus loopAction(Time time){
         if(stateTracker.getDroneLanded() == DroneLanded.InAir
-                && rosServerProvider.getCurrentAction() == "TAKEOFF"
+                && rosServerProvider.getCurrentAction().equals("TAKEOFF")
                 && rosServerProvider.getActionFinished()){
             status = ActionStatus.Success;
+            rosServerProvider.resetActionStatus();
             return status;
-        }else if(timeProvider.getCurrentTime().subtract(timeStamp).compareTo(timeOut) >= 0){
+        }else if(time.subtract(timeStamp).compareTo(timeOut) >= 0){
             // if current time substracts timestamp is above timeout duration
             status = ActionStatus.Failure;
             return status;

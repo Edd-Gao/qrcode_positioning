@@ -39,7 +39,7 @@ public class StateMachine {
                 break;
             case DangerousPosition:
                 if (currentState != emergencyLanding) {
-                    logger.warn("Switching to manual control due to perceived danger");
+                    logger.warn("Switching to emergencyLanding due to perceived danger");
                     forceState(emergencyLanding);
                 }
                 break;
@@ -63,7 +63,7 @@ public class StateMachine {
                 break;
             case ActionFailure:
                 if (currentState != emergencyLanding) {
-                    logger.warn("Switching to manual control due to " + currentState.getCurrentAction().toString() + " failing");
+                    logger.warn("Switching to emergency landing due to " + currentState.getCurrentAction().toString() + " failing");
                     forceState(emergencyLanding);
                 }
                 break;

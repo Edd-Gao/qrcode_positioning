@@ -36,4 +36,12 @@ public class RosServiceProvider {
 
     public ServiceClient<ParamPullRequest, ParamPullResponse> getParamPullService() {return paramPullService;}
 
+    public boolean isConnected(){
+        return armingService.isConnected()
+                && setHoverControllerModeService.isConnected()
+                && setHoverControllerWayPointService.isConnected()
+                && setFCUModeService.isConnected()
+                && paramPullService.isConnected();
+    }
+
 }

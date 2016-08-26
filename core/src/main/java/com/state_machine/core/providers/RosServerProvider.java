@@ -13,6 +13,9 @@ public class RosServerProvider {
     private boolean actionFinished;
 
     public RosServerProvider (ConnectedNode node){
+        currentAction = "";
+        actionFinished = false;
+
         node.newServiceServer("state_machine/actionStatus", ActionStatus._TYPE,
                 new ServiceResponseBuilder<ActionStatusRequest, ActionStatusResponse>() {
                     @Override
@@ -28,6 +31,11 @@ public class RosServerProvider {
     public String getCurrentAction(){return currentAction;}
 
     public boolean getActionFinished(){return actionFinished;}
+
+    public void resetActionStatus(){
+        currentAction = "";
+        actionFinished = false;
+    }
 
 
 }

@@ -36,7 +36,7 @@ public class EmergencyLandingState extends State {
     }
 
     public String toString() {
-        return "IdleState";
+        return "EmergencyLandingState";
     }
 
 }
