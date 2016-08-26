@@ -7,7 +7,6 @@ SET(CMAKE_CXX_FLAGS "-std=c++11")
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
   std_msgs
   message_generation
 )
@@ -70,5 +69,9 @@ find_package(catkin REQUIRED COMPONENTS
  generate_messages(
    DEPENDENCIES
    std_msgs
+ )
+
+ catkin_package(
+   CATKIN_DEPENDS message_runtime std_msgs  
  )
 
