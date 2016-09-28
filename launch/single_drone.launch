@@ -1,0 +1,5 @@
+<launch>
+<include file="$(find px4)/launch/posix_sitl.launch" />
+<include file="$(find mavros)/launch/px4_sitl.launch" />
+<include file="$(find hover_controller)/launch/local.launch" />
+</launch>
