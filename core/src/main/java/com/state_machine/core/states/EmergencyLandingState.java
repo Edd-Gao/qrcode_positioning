@@ -23,7 +23,7 @@ public class EmergencyLandingState extends State {
     ){
         super(actionProvider, setModeService, log);
         this.stateTracker = stateTracker;
-        actionQueue.add(actionProvider.getSetFCUModeAction("STABILIZE"));
+        actionQueue.add(actionProvider.getSetFCUModeAction("OFFBOARD"));
         actionQueue.add(actionProvider.getLandingAction());
         actionQueue.add(actionProvider.getDisarmAction());
     }

@@ -12,7 +12,7 @@ public class IdleState extends State {
                      ServiceClient<SetModeRequest, SetModeResponse> setModeService,
                      Log log) {
         super(actionProvider, setModeService, log);
-        actionQueue.add(actionProvider.getSetFCUModeAction("STABILIZE"));
+        actionQueue.add(actionProvider.getSetFCUModeAction("OFFBOARD"));
         actionQueue.add(actionProvider.getDisarmAction());
     }
 
