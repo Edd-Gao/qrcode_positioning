@@ -11,7 +11,7 @@ public class RosPublisherProvider {
     private Publisher<OverrideRCIn> overrideRCInPublisher;
 
     public RosPublisherProvider(ConnectedNode node){
-        overrideRCInPublisher = node.newPublisher("/mavros/rc/override",OverrideRCIn._TYPE);
+        overrideRCInPublisher = node.newPublisher("mavros/rc/override",OverrideRCIn._TYPE);
     }
 
     public Publisher<OverrideRCIn> getOverrideRCInPubliser(){
