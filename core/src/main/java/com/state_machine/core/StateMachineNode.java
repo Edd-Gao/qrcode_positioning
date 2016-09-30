@@ -4,16 +4,12 @@ import com.state_machine.core.droneState.DroneStateTracker;
 import com.state_machine.core.providers.*;
 import com.state_machine.core.stateMachine.StateMachine;
 import com.state_machine.core.states.State;
-import org.apache.commons.httpclient.util.ExceptionUtil;
 import org.apache.commons.logging.Log;
 import org.ros.concurrent.CancellableLoop;
-import org.ros.exception.ServiceNotFoundException;
 import org.ros.message.Duration;
-import org.ros.message.Time;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
-import org.ros.time.TimeProvider;
 
 import java.util.Queue;
 
@@ -53,40 +49,7 @@ public class StateMachineNode extends AbstractNodeMain {
             actionProvider = new ActionProvider(serviceProvider, droneStateTracker, fileProvider, publisherProvider,timeOut,serverProvider );
             stateProvider = new StateProvider(actionProvider, serviceProvider, publisherProvider, log, droneStateTracker);
             fileProvider = new FileProvider(actionProvider, stateProvider, log);
-            stateQueue = fileProvider.readScript("{\n" +
-                    "  \"queue\": [\n" +
-                    "    {\n" +
-                    "      \"state\": \"ScriptedState\",\n" +
-                    "      \"scriptedActions\": [\n" +
-                    "        {\n" +
-                    "          \"action\": \"ArmAction\"\n" +
-                    "        },\n" +
-                    "        {\n" +
-                    "          \"action\": \"TakeOffAction\",\n" +
-                    "          \"target_heightcm\": 500\n" +
-                    "        },\n" +
-                    "        {\n" +
-                    "          \"action\": \"FlyToAction\",\n" +
-                    "          \"waypoint\": [1000,100,600]\n" +
-                    "        },\n" +
-                    "        {\n" +
-                    "          \"action\": \"FlyToAction\",\n" +
-                    "          \"waypoint\": [0,100,600]\n" +
-                    "        },\n" +
-                    "        {\n" +
-                    "          \"action\": \"FlyToAction\",\n" +
-                    "          \"waypoint\": [1000,1000,600]\n" +
-                    "        },\n" +
-                    "        {\n" +
-                    "          \"action\": \"LandingAction\"\n" +
-                    "        },\n" +
-                    "        {\n" +
-                    "          \"action\": \"DisarmAction\"\n" +
-                    "        }\n" +
-                    "      ]\n" +
-                    "    }\n" +
-                    "  ]\n" +
-                    "}");
+            stateQueue = fileProvider.readScript("flight_script/test_flight.json");
 
             if(!serviceProvider.isConnected()) {
                 throw new Exception("service not connected, please run mavros first");
@@ -99,7 +62,7 @@ public class StateMachineNode extends AbstractNodeMain {
             System.exit(1);
         }
 
-        State initialState = stateProvider.getIdleState();
+        State initialState = stateProvider.getIdleState(0);
         if(!stateQueue.isEmpty()) initialState = stateQueue.remove();
 
         stateMachine = new StateMachine(

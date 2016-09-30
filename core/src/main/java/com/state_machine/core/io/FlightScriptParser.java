@@ -9,6 +9,10 @@ import com.state_machine.core.providers.StateProvider;
 import com.state_machine.core.states.State;
 import org.apache.commons.logging.Log;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.*;
 
 public class FlightScriptParser {
@@ -26,32 +30,39 @@ public class FlightScriptParser {
     }
 
     public Queue<State> parseFile(String filePath){
-        Scanner scanner = null;
-        StringBuilder json = new StringBuilder();
-        List<StateJsonRepresentation> stateInfo = new ArrayList<>();
-        try{
-            scanner = new Scanner(filePath);
-            while(scanner.hasNextLine()){
-                json.append(scanner.nextLine() + "\n");
-            }
-            stateInfo = gson.fromJson(json.toString(), JsonStateList.class).queue;
-        } catch (Exception e){
-            log.warn("Could not read flight io at " + filePath, e);
-        } finally {
-            if(scanner != null) scanner.close();
-        }
         Queue<State> states = new ArrayDeque<>();
-        for(StateJsonRepresentation s : stateInfo){
-            State state = parseState(s);
-            if(state != null) states.add(state);
+
+        try {
+            InputStream in = new FileInputStream(new File(filePath));
+            Scanner scanner = null;
+            StringBuilder json = new StringBuilder();
+            List<StateJsonRepresentation> stateInfo = new ArrayList<>();
+            try{
+                scanner = new Scanner(in);
+                while(scanner.hasNextLine()){
+                    json.append(scanner.nextLine() + "\n");
+                }
+                stateInfo = gson.fromJson(json.toString(), JsonStateList.class).queue;
+            } catch (Exception e){
+                log.warn("Could not read flight io at " + filePath, e);
+            } finally {
+                if(scanner != null) scanner.close();
+            }
+            for(StateJsonRepresentation s : stateInfo){
+                State state = parseState(s);
+                if(state != null) states.add(state);
+            }
+            return states;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return states;
         }
-        return states;
     }
 
     private State parseState(StateJsonRepresentation repr){
         switch(repr.state){
             case "IdleState":
-                return stateProvider.getIdleState();
+                return stateProvider.getIdleState(repr.duration);
             case "ScriptedState":
                 Queue<Action> actions = new ArrayDeque<>();
                 for(ActionJsonRepresentation a : repr.scriptedActions){
@@ -92,6 +103,7 @@ public class FlightScriptParser {
     private class StateJsonRepresentation {
         String state;
         List<ActionJsonRepresentation> scriptedActions;
+        long duration;
         //other types of parameters go here by name
     }
 
