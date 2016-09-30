@@ -1,12 +1,10 @@
 package com.state_machine.core.providers;
 
 import com.state_machine.core.actions.Action;
-import com.state_machine.core.actions.util.Waypoint;
 import com.state_machine.core.droneState.DroneStateTracker;
 import com.state_machine.core.states.*;
 import org.apache.commons.logging.Log;
 
-import java.util.List;
 import java.util.Queue;
 
 public class StateProvider {
@@ -26,12 +24,12 @@ public class StateProvider {
         this.log = log;
         this.stateTracker = stateTracker;
 
-        this.idleState = new IdleState(actionProvider, serviceProvider.getSetFCUModeService(), log);
+
         this.emergencyLandingState = new EmergencyLandingState(actionProvider, serviceProvider.getSetFCUModeService(), log, stateTracker);
 
     }
 
-    public IdleState getIdleState() { return idleState; }
+    public IdleState getIdleState(long duration) { return new IdleState(actionProvider, serviceProvider.getSetFCUModeService(), log, duration); }
 
     public EmergencyLandingState getEmergencyLandingState(){ return emergencyLandingState;}
 
