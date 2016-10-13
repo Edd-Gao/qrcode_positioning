@@ -15,9 +15,11 @@ public class FileProvider {
 
     private Properties config;
     private FlightScriptParser flightScriptParser;
+    private RosParamProvider rosParamProvider;
 
-    public FileProvider(ActionProvider actionProvider, StateProvider stateProvider, Log log){
+    public FileProvider(RosParamProvider rosParamProvider, ActionProvider actionProvider, StateProvider stateProvider, Log log){
         flightScriptParser = new FlightScriptParser(actionProvider, stateProvider, log);
+        this.rosParamProvider = rosParamProvider;
         initConfig();
     }
 
@@ -32,7 +34,8 @@ public class FileProvider {
         InputStream input = null;
         try{
             //todo: change the path format to relative path
-            input = new FileInputStream("/home/firefly/workspace/DroneProject/drone-control/src/state_machine/core/src/main/java/com/state_machine/core/providers/config.properties");
+            //input = new FileInputStream("/home/firefly/workspace/DroneProject/drone-control/src/state_machine/core/src/main/java/com/state_machine/core/providers/config.properties");
+            input = new FileInputStream(rosParamProvider.getPropertiesPath());
             properties.load(input);
         } catch (Exception e){
             e.printStackTrace();

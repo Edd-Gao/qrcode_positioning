@@ -31,14 +31,18 @@ public class StateMachineNode extends AbstractNodeMain {
 
     @Override
     public void onStart(final ConnectedNode node) {
+
+
         this.node = node;
         this.log = node.getLog();
         try {
+
 
             RosServiceProvider serviceProvider = new RosServiceProvider(node);
             RosSubscriberProvider subscriberProvider = new RosSubscriberProvider(node);
             RosPublisherProvider publisherProvider = new RosPublisherProvider(node);
             RosServerProvider serverProvider = new RosServerProvider(node);
+            RosParamProvider rosParamProvider = new RosParamProvider(node,serviceProvider,log);
             Duration timeOut = new Duration(60,0);//todo: remove the magic number here
 
             droneStateTracker = new DroneStateTracker(
@@ -48,14 +52,15 @@ public class StateMachineNode extends AbstractNodeMain {
             );
             actionProvider = new ActionProvider(serviceProvider, droneStateTracker, fileProvider, publisherProvider,timeOut,serverProvider );
             stateProvider = new StateProvider(actionProvider, serviceProvider, publisherProvider, log, droneStateTracker);
-            fileProvider = new FileProvider(actionProvider, stateProvider, log);
-            stateQueue = fileProvider.readScript("/home/firefly/catkin_ws/src/onboard_statemachine/flight_script/test_flight.json");
+            fileProvider = new FileProvider(rosParamProvider,actionProvider, stateProvider, log);
+            //stateQueue = fileProvider.readScript("/home/firefly/catkin_ws/src/onboard_statemachine/flight_script/test_flight.json");
+            stateQueue = fileProvider.readScript(rosParamProvider.getFlightScriptPath());
 
             if(!serviceProvider.isConnected()) {
                 throw new Exception("service not connected, please run mavros first");
             }
 
-            Thread.sleep(5000); //forcing 5 seconds wait.
+            Thread.sleep(10000); //forcing 5 seconds wait.
 
         } catch(Exception e) {
             log.fatal("Initialization failed", e);
@@ -71,6 +76,7 @@ public class StateMachineNode extends AbstractNodeMain {
                 log,
                 droneStateTracker
         );
+
 
         node.executeCancellableLoop(new CancellableLoop() {
             @Override
