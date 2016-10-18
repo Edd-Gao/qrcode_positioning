@@ -60,7 +60,7 @@ public class StateMachineNode extends AbstractNodeMain {
                 throw new Exception("service not connected, please run mavros first");
             }
 
-
+            Thread.sleep(10000);
 
         } catch(Exception e) {
             log.fatal("Initialization failed", e);
