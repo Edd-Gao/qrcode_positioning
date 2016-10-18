@@ -71,3 +71,6 @@ find_package(catkin REQUIRED COMPONENTS
    std_msgs
  )
 
+ catkin_package(
+   CATKIN_DEPENDS message_runtime std_msgs
+)
