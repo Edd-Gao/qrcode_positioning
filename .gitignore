@@ -1,0 +1,4 @@
+#idea files
+core/build
+.gradle
+.idea
