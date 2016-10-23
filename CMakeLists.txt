@@ -12,6 +12,7 @@ project(state_machine)
 find_package(catkin REQUIRED
     rosjava_build_tools
     mavros
+    sensor_msgs
     state_machine_msgs
     hover_controller_msgs
 )
@@ -19,6 +20,7 @@ find_package(catkin REQUIRED
 generate_rosjava_messages(
   PACKAGES
     mavros
+    sensor_msgs
 )
 
 # Set the gradle targets you want catkin's make to run by default, e.g.
