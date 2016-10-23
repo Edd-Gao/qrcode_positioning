@@ -6,6 +6,7 @@ import com.state_machine.core.stateMachine.StateMachine;
 import com.state_machine.core.states.State;
 import org.apache.commons.logging.Log;
 import org.ros.concurrent.CancellableLoop;
+import org.ros.exception.ServiceNotFoundException;
 import org.ros.message.Duration;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
@@ -36,7 +37,7 @@ public class StateMachineNode extends AbstractNodeMain {
         this.node = node;
         this.log = node.getLog();
         try {
-            Thread.sleep(20000); //forcing 5 seconds wait.
+            Thread.sleep(2000); //forcing 5 seconds wait.
 
             RosServiceProvider serviceProvider = new RosServiceProvider(node);
             RosSubscriberProvider subscriberProvider = new RosSubscriberProvider(node);
@@ -48,7 +49,9 @@ public class StateMachineNode extends AbstractNodeMain {
             droneStateTracker = new DroneStateTracker(
                     subscriberProvider.getStateSubscriber(),
                     subscriberProvider.getBatteryStatusSubscriber(),
-                    subscriberProvider.getExtendedStateSubscriber()
+                    subscriberProvider.getExtendedStateSubscriber(),
+                    subscriberProvider.getLocalPositionPoseSubscriber(),
+                    subscriberProvider.getGlobalPositionGlobalSubscriber()
             );
             actionProvider = new ActionProvider(serviceProvider, droneStateTracker, fileProvider, publisherProvider,timeOut,serverProvider );
             stateProvider = new StateProvider(actionProvider, serviceProvider, publisherProvider, log, droneStateTracker);

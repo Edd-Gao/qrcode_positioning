@@ -13,6 +13,7 @@ public class ActionProvider implements FlyToActionFactory {
     private ArmAction armAction;
     private DisarmAction disarmAction;
     private LandingAction landingAction;
+    private PX4LandAction px4LandAction;
     private FileProvider fileProvider;
     private RosServerProvider rosServerProvider;
     private Duration timeOut;
@@ -33,6 +34,7 @@ public class ActionProvider implements FlyToActionFactory {
         armAction = new ArmAction(serviceProvider.getArmingService(), stateTracker);
         disarmAction = new DisarmAction(serviceProvider.getArmingService(), stateTracker);
         landingAction = new LandingAction(serviceProvider.getSetHoverControllerModeService(), stateTracker,rosServerProvider,timeOut);
+        px4LandAction = new PX4LandAction(stateTracker,timeOut,serviceProvider.getLandService());
     }
 
     public ArmAction getArmAction(){ return armAction; }
@@ -47,7 +49,17 @@ public class ActionProvider implements FlyToActionFactory {
         return new FlyToAction(objective, stateTracker, fileProvider,rosServerProvider,serviceProvider.getSetHoverControllerModeService(),serviceProvider.getSetHoverControllerWayPointService() ,timeOut );
     }
 
+    public PX4FlyToAction getPX4FlyToAction(Waypoint objective,int seq){
+        return new PX4FlyToAction(objective,stateTracker,rosPublisherProvider,timeOut,serviceProvider,seq);
+    }
+
     public SetFCUModeAction getSetFCUModeAction(String newMode){
         return new SetFCUModeAction(serviceProvider.getSetFCUModeService(),newMode);
+    }
+
+    public PX4LandAction getPx4LandAction(){ return px4LandAction;}
+
+    public PX4TakeoffAction getPX4TakeoffAction(double target_heightm){
+        return new PX4TakeoffAction(stateTracker,target_heightm,timeOut,serviceProvider.getTakeoffService());
     }
 }

@@ -21,12 +21,14 @@ public class FlightScriptParser {
     private ActionProvider actionProvider;
     private Log log;
     private Gson gson;
+    private int seq;//waypoint sequence
 
     public FlightScriptParser(ActionProvider actions, StateProvider states, Log log){
         this.stateProvider = states;
         this.actionProvider = actions;
         this.gson = new GsonBuilder().create();
         this.log = log;
+        seq = 0;
     }
 
     public Queue<State> parseFile(String filePath){
@@ -86,10 +88,21 @@ public class FlightScriptParser {
                 return actionProvider.getTakeoffAction(repr.target_heightcm);
             case "LandingAction":
                 return actionProvider.getLandingAction();
+            case "SetFCUModeAction":
+                return actionProvider.getSetFCUModeAction(repr.newMode);
+            case "PX4TakeoffAction":
+                return actionProvider.getPX4TakeoffAction(repr.target_heightm);
+            case "PX4LandAction":
+                return actionProvider.getPx4LandAction();
             case "FlyToAction":
-                List<Float> xyz = repr.waypoint;
-                Waypoint objective = new Waypoint(xyz.get(0), xyz.get(1), xyz.get(2));
-                return actionProvider.getFlyToAction(objective);
+                List<Float> xyz1 = repr.waypoint;
+                Waypoint objective1 = new Waypoint(xyz1.get(0), xyz1.get(1), xyz1.get(2));
+                return actionProvider.getFlyToAction(objective1);
+            case "PX4FlyToAction":
+                seq++;
+                List<Float> xyz2 = repr.waypoint;
+                Waypoint objective2 = new Waypoint(xyz2.get(0), xyz2.get(1), xyz2.get(2));
+                return actionProvider.getPX4FlyToAction(objective2,seq);
             default:
                 log.warn("Flight io contained invalid action: " + repr.action);
                 return null;
@@ -109,8 +122,10 @@ public class FlightScriptParser {
 
     private class ActionJsonRepresentation {
         String action;
+        double target_heightm;
         Float target_heightcm;
         List<Float> waypoint;
+        String newMode; // new mode for SetFCUModeAction
         //possible parameters go here by name
     }
 }

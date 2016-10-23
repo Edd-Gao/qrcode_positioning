@@ -1,0 +1,35 @@
+{
+  "queue":[
+    {
+      "state":"ScriptedState",
+      "scriptedActions":[
+        {
+          "action":"ArmAction"
+        },
+        {
+          "action":"PX4TakeoffAction",
+          "target_heightm":15
+        },
+        {
+          "action":"PX4FlyToAction",
+          "waypoint":[10.0,10.0,10.0]
+        },
+        {
+          "action":"PX4FlyToAction",
+          "waypoint":[-10.0,10.0,10.0]
+        },
+        {
+          "action":"PX4FlyToAction",
+          "waypoint":[-10.0,-10.0,10.0]
+        },
+        {
+          "action":"PX4FlyToAction",
+          "waypoint":[10.0,-10.0,10.0]
+        },
+        {
+          "action":"PX4LandAction"
+        }
+      ]
+    }
+  ]
+}
