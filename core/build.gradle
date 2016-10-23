@@ -34,6 +34,7 @@ dependencies {
   compile ':mavros_msgs-0.17.0'
   compile ':hover_controller_msgs-0.0.1'
   compile ':state_machine_msgs-0.0.1'
+  compile ':sensor_msgs-1.11.9'
   compile 'com.google.code.gson:gson:[2.6,)'
   testCompile 'junit:junit:[4.11, )'
 }
