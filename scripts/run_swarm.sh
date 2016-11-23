@@ -17,11 +17,9 @@ port_step=10
 pkill px4
 sleep 2
 
-mkdir -p ${swarm_sitl_launcher_path}/tmp/SDFs
-
 mkdir -p $swarm_sitl_launcher_path/posix
 
-cd posix
+cd $swarm_sitl_launcher_path/posix
 
 user=`whoami`
 n=1
@@ -42,12 +40,14 @@ while [ $n -le $sitl_num ]; do
 
  cd $n
  
- sudo -b ${src_path}/build_posix_sitl_default/src/firmware/posix/px4 -d rcS #>out.log 2>err.log
+${src_path}/build_posix_sitl_default/src/firmware/posix/px4 -d rcS & #>out.log 2>err.log
 
  cd ..
 
- cat ${swarm_sitl_launcher_path}/models/iris/iris.sdf | sed s/_SIMPORT_/${sim_port}/ > ${swarm_sitl_launcher_path}/tmp/SDFs/iris_${n}.sdf
-
+ mkdir -p $swarm_sitl_launcher_path/tmp/models/iris_$n
+ cat ${swarm_sitl_launcher_path}/models/iris/iris.sdf | sed s/_SIMPORT_/${sim_port}/ | sed s/_MODEL_NAME_/iris_${n}/ > ${swarm_sitl_launcher_path}/tmp/models/iris_$n/iris_${n}.sdf
+ cat ${swarm_sitl_launcher_path}/models/iris/model.config | sed s/_SDF_FILE_/iris_${n}.sdf/ > ${swarm_sitl_launcher_path}/tmp/models/iris_${n}/model.config
+ 
  n=$(($n + 1))
  sim_port=$(($sim_port + $port_step))
  mav_port=$(($mav_port + $port_step))
@@ -55,4 +55,20 @@ while [ $n -le $sitl_num ]; do
  mav_oport=$(($mav_oport + $port_step))
  mav_oport2=$(($mav_oport2 + $port_step))
 done
+
+ #export GAZEBO_PLUGIN_PATH=${src_path}/build_gazebo:${GAZEBO_PLUGIN_PATH}
+ #export GAZEBO_MODEL_PATH=${swarm_sitl_launcher_path}/tmp/models:${GAZEBO_MODEL_PATH}
+ #export GAZEBO_MODEL_DATABASE_URI=""
+ #export SITL_GAZEBO_PATH=$src_path/Tools/sitl_gazebo
+
+ #gzserver --verbose $swarm_sitl_launcher_path/world/iris.world &
+ #SIM_PID=`echo $!`
+
+# gzclient --verbose
+# GUI_PID=`echo $!`
+
+# kill -9 $SIM_PID
+ #kill -9 $GUI_PID
+
+
 

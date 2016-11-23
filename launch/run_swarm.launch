@@ -1,0 +1,36 @@
+<launch>
+    <arg name="sitl_num" default="4" />
+    <arg name="rc_script" default="rcS_multiple_gazebo_iris" />
+    <arg name="gui" default="true" />
+    <arg name="headless" default="false" />
+
+
+    <node pkg="swarm_sitl_launcher" name="simulator" type="run_swarm.sh" args="$(arg sitl_num) $(arg rc_script) $(find px4) $(find swarm_sitl_launcher)" />
+
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="headless" value="$(arg headless)"/>
+        <arg name="gui" value="$(arg gui)"/>
+        <arg name="world_name" value="$(find swarm_sitl_launcher)/world/iris.world" />
+    </include>
+
+    <include ns="drone1" file="$(find swarm_sitl_launcher)/launch/swarm_one_drone.launch">
+        <arg name="fcu_url" value="udp://:15016@127.0.0.1:15011" />
+        <!--arg name="model_name" value="iris_1" /-->
+    </include>
+
+    <include ns="drone2" file="$(find swarm_sitl_launcher)/launch/swarm_one_drone.launch">
+        <arg name="fcu_url" value="udp://:15026@127.0.0.1:15021" />
+        <!--arg name="model_name" value="iris_2" /-->
+    </include>
+
+    <include ns="drone3" file="$(find swarm_sitl_launcher)/launch/swarm_one_drone.launch">
+        <arg name="fcu_url" value="udp://:15036@127.0.0.1:15031" />
+        <!--arg name="model_name" value="iris_3" /-->
+    </include>
+
+    <include ns="drone4" file="$(find swarm_sitl_launcher)/launch/swarm_one_drone.launch">
+        <arg name="fcu_url" value="udp://:15046@127.0.0.1:15041" />
+        <!--arg name="model_name" value="iris_4" /-->
+    </include>
+
+</launch>
