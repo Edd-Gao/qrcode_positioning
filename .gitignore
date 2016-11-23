@@ -49,3 +49,6 @@ fabric.properties
 posix
 tmp
 
+#temp files
+*~
+
