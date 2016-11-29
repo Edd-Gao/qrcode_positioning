@@ -5,3 +5,6 @@ core/build
 
 #vscode
 .vscode
+
+#temp files
+*~
