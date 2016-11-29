@@ -37,7 +37,7 @@ public class StateMachineNode extends AbstractNodeMain {
         this.node = node;
         this.log = node.getLog();
         try {
-            Thread.sleep(2000); //forcing 5 seconds wait.
+            Thread.sleep(10000); //forcing 5 seconds wait.
 
             RosServiceProvider serviceProvider = new RosServiceProvider(node);
             RosSubscriberProvider subscriberProvider = new RosSubscriberProvider(node);
@@ -53,7 +53,7 @@ public class StateMachineNode extends AbstractNodeMain {
                     subscriberProvider.getLocalPositionPoseSubscriber(),
                     subscriberProvider.getGlobalPositionGlobalSubscriber()
             );
-            actionProvider = new ActionProvider(serviceProvider, droneStateTracker, fileProvider, publisherProvider,timeOut,serverProvider );
+            actionProvider = new ActionProvider(log, serviceProvider, droneStateTracker, fileProvider, publisherProvider,timeOut,serverProvider );
             stateProvider = new StateProvider(actionProvider, serviceProvider, publisherProvider, log, droneStateTracker);
             fileProvider = new FileProvider(rosParamProvider,actionProvider, stateProvider, log);
             //stateQueue = fileProvider.readScript("/home/firefly/catkin_ws/src/onboard_statemachine/flight_script/test_flight.json");

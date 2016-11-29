@@ -6,6 +6,7 @@ import com.state_machine.core.droneState.DroneLanded;
 import com.state_machine.core.droneState.DroneStateTracker;
 import mavros_msgs.CommandTOLRequest;
 import mavros_msgs.CommandTOLResponse;
+import org.apache.commons.logging.Log;
 import org.ros.RosRun;
 import org.ros.exception.RemoteException;
 import org.ros.message.Duration;
@@ -24,9 +25,12 @@ public class PX4TakeoffAction extends Action{
     private double target_heightm;
     private Duration timeOut;
     private ServiceClient<CommandTOLRequest, CommandTOLResponse> takeoffService;
+    private Log logger;
+    private double targetAltitude;
 
 
     public PX4TakeoffAction(
+            Log logger,
             DroneStateTracker stateTracker,
             double target_heightm,
             Duration timeOut,
@@ -36,13 +40,14 @@ public class PX4TakeoffAction extends Action{
         this.target_heightm = target_heightm;
         this.timeOut = timeOut;
         this.takeoffService = takeoffService;
+        this.logger = logger;
     }
 
     @Override
     public ActionStatus enterAction(Time time){
         double currentLongitude = stateTracker.getLongitude();
         double currentLattitude = stateTracker.getLattitude();
-        double targetAltitude = stateTracker.getAltitude() + target_heightm;
+        targetAltitude = stateTracker.getAltitude() + target_heightm;
 
         status = ActionStatus.Inactive;
 
@@ -81,7 +86,8 @@ public class PX4TakeoffAction extends Action{
     @Override
     public ActionStatus loopAction(Time time) {
         if(stateTracker.getDroneLanded() == DroneLanded.InAir
-                && abs(stateTracker.getAltitude() - target_heightm) < 0.5){
+                && abs(stateTracker.getAltitude() - targetAltitude) < 0.5){
+            logger.warn("takeoff success,distance" + abs(stateTracker.getAltitude() - targetAltitude));
             status = ActionStatus.Success;
             return status;
         }else if(time.subtract(timeStamp).compareTo(timeOut) >= 0){
@@ -89,6 +95,7 @@ public class PX4TakeoffAction extends Action{
             return status;
         }else{
             status = ActionStatus.Waiting;
+            //logger.warn("distance to target takeoff point:" + abs(stateTracker.getAltitude() - target_heightm));
             return status;
         }
     }

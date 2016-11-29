@@ -3,6 +3,7 @@ package com.state_machine.core.providers;
 import com.state_machine.core.actions.*;
 import com.state_machine.core.droneState.DroneStateTracker;
 import com.state_machine.core.actions.util.Waypoint;
+import org.apache.commons.logging.Log;
 import org.ros.message.Duration;
 
 public class ActionProvider implements FlyToActionFactory {
@@ -17,8 +18,10 @@ public class ActionProvider implements FlyToActionFactory {
     private FileProvider fileProvider;
     private RosServerProvider rosServerProvider;
     private Duration timeOut;
+    private Log logger;
 
     public ActionProvider(
+            Log logger,
             RosServiceProvider serviceProvider,
             DroneStateTracker stateTracker,
             FileProvider fileProvider,
@@ -31,6 +34,7 @@ public class ActionProvider implements FlyToActionFactory {
         this.rosPublisherProvider = rosPublisherProvider;
         this.rosServerProvider = rosServerProvider;
         this.timeOut = timeOut;
+        this.logger = logger;
         armAction = new ArmAction(serviceProvider.getArmingService(), stateTracker);
         disarmAction = new DisarmAction(serviceProvider.getArmingService(), stateTracker);
         landingAction = new LandingAction(serviceProvider.getSetHoverControllerModeService(), stateTracker,rosServerProvider,timeOut);
@@ -60,6 +64,6 @@ public class ActionProvider implements FlyToActionFactory {
     public PX4LandAction getPx4LandAction(){ return px4LandAction;}
 
     public PX4TakeoffAction getPX4TakeoffAction(double target_heightm){
-        return new PX4TakeoffAction(stateTracker,target_heightm,timeOut,serviceProvider.getTakeoffService());
+        return new PX4TakeoffAction(logger, stateTracker,target_heightm,timeOut,serviceProvider.getTakeoffService());
     }
 }
