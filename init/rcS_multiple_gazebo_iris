@@ -5,6 +5,8 @@ param set SYS_AUTOSTART 4010
 param set SYS_RESTART_TYPE 2
 dataman start
 param set BAT_N_CELLS 3
+param set LPE_GPS_ON 0
+param set CBRK_GPSFAIL 240024
 param set CAL_GYRO0_ID 2293768
 param set CAL_ACC0_ID 1376264
 param set CAL_ACC1_ID 1310728
@@ -39,9 +41,9 @@ param set MPC_HOLD_MAX_Z 2.0
 param set MPC_HOLD_XY_DZ 0.1
 param set MPC_Z_VEL_P 0.6
 param set MPC_Z_VEL_I 0.15
-param set EKF2_GBIAS_INIT 0.01
-param set EKF2_ANGERR_INIT 0.01
-param set EKF2_MAG_TYPE 1
+#param set EKF2_GBIAS_INIT 0.01
+#param set EKF2_ANGERR_INIT 0.01
+#param set EKF2_MAG_TYPE 1
 replay tryapplyparams
 simulator start -s -u _SIMPORT_
 rgbledsim start
@@ -50,17 +52,18 @@ gyrosim start
 accelsim start
 barosim start
 adcsim start
-gpssim start
+#gpssim start
 pwm_out_sim mode_pwm
 sleep 1
 sensors start
 commander start
 land_detector start multicopter
 navigator start
-ekf2 start
+#ekf2 start
+local_position_estimator start
+attitude_estimator_q start
 mc_pos_control start
 mc_att_control start
-#local_position_estimator start
 mixer load /dev/pwm_output0 quad_w.main.mix
 mavlink start -u _MAVPORT_ -r 2000000 -o _MAVOPORT_
 mavlink start -u _MAVPORT2_ -r 2000000 -m onboard -o _MAVOPORT2_
