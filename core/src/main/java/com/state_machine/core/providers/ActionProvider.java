@@ -61,7 +61,7 @@ public class ActionProvider implements FlyToActionFactory {
         return new SetFCUModeAction(serviceProvider.getSetFCUModeService(),newMode);
     }
 
-    public PX4LandAction getPx4LandAction(){ return px4LandAction;}
+    public PX4LandAction getPX4LandAction(){ return px4LandAction;}
 
     public PX4TakeoffAction getPX4TakeoffAction(double target_heightm){
         return new PX4TakeoffAction(logger, stateTracker,target_heightm,timeOut,serviceProvider.getTakeoffService());
