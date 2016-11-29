@@ -59,8 +59,8 @@ public class PX4FlyToAction extends Action {
         this.timeOut = timeOut;
     }
 
-    private double calculateDistance(Pose a, Pose b){
-        return sqrt(pow((a.getPosition().getX() - b.getPosition().getX()),2) + pow((a.getPosition().getY() - b.getPosition().getY()),2) + pow((a.getPosition().getZ() - b.getPosition().getZ()),2));
+    private double calculateDistance(Pose objective, double[] localPosition){
+        return sqrt(pow((objective.getPosition().getX() - localPosition[0]) ,2) + pow((objective.getPosition().getY() - localPosition[1]),2) + pow((objective.getPosition().getZ() - localPosition[2]),2));
     }
 
     @Override
@@ -103,7 +103,7 @@ public class PX4FlyToAction extends Action {
 
     @Override
     public ActionStatus loopAction(Time time) {
-        if(calculateDistance(stateTracker.getLocalPosition(),objective.getPose()) < 0.5
+        if(calculateDistance(objective.getPose(),stateTracker.getLocalPosition()) < 0.5
                 && stateTracker.getDroneLanded() == DroneLanded.InAir){
             status = ActionStatus.Success;
             return status;
