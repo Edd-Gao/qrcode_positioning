@@ -20,6 +20,8 @@ public class DroneStateTracker {
     private float battery;              //battery remaining
     private DroneLanded droneLanded;    //the drone landing status
     private double[] localPosition = new double[3];
+    private double[] localOrigin = new double[3];// temporally use this variable to store the local origin coordinate in world frame.
+    private double[] visionPosition = new double[3];
     private double lattitude;
     private double longitude;
     private double altitude;
@@ -29,7 +31,8 @@ public class DroneStateTracker {
             Subscriber<State> stateSubscriber,
             Subscriber<BatteryStatus> batterySubscriber,
             Subscriber<ExtendedState> extendedStateSubscriber,
-            final Subscriber<PoseStamped> localPositionPoseSubscriber,
+            Subscriber<PoseStamped> localPositionPoseSubscriber,
+            Subscriber<PoseStamped> visionPositionPoseSubscriber,
             Subscriber<NavSatFix> globalPositionGlobalSubscriber
             ){
         MessageListener<NavSatFix> globalPositionListener = new MessageListener<NavSatFix>() {
@@ -51,6 +54,16 @@ public class DroneStateTracker {
             }
         };
         localPositionPoseSubscriber.addMessageListener(localPoseListener);
+
+        MessageListener<PoseStamped> visionPoseListener = new MessageListener<PoseStamped>() {
+            @Override
+            public void onNewMessage(PoseStamped poseStamped) {
+                visionPosition[0] = poseStamped.getPose().getPosition().getX();
+                visionPosition[1] = poseStamped.getPose().getPosition().getY();
+                visionPosition[2] = poseStamped.getPose().getPosition().getZ();
+            }
+        };
+        visionPositionPoseSubscriber.addMessageListener(visionPoseListener);
 
         MessageListener<State> stateListener = new MessageListener<State>() {
             @Override
@@ -89,6 +102,7 @@ public class DroneStateTracker {
         droneLanded = DroneLanded.Undefined;
     }
 
+    //getters
     public boolean getArmed(){
         return armed;
     }
@@ -99,6 +113,15 @@ public class DroneStateTracker {
     public double getLongitude() { return longitude;}
     public double getAltitude() { return  altitude;}
     public String getFCUMode() { return FCUMode;}
+    public double[] getLocalOrigin(){return localOrigin;}
+    public double[] getVisionPosition(){return visionPosition; }
+
+    //setters
+    public void setLocalOrigin(double[] originValue){
+        localOrigin[0] = originValue[0];
+        localOrigin[1] = originValue[1];
+        localOrigin[2] = originValue[2];
+    }
 
     public boolean initialized(){
         if (battery == -1 || droneLanded == DroneLanded.Undefined)

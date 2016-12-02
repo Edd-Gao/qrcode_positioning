@@ -17,7 +17,7 @@ public class ScriptedState extends State {
                          ServiceClient<SetModeRequest, SetModeResponse> setModeService,
                          Log log){
         super(actionProvider, setModeService, log);
-        actionQueue.add(actionProvider.getSetFCUModeAction("OFFBOARD"));
+        //actionQueue.add(actionProvider.getSetFCUModeAction("OFFBOARD"));
         actionQueue.addAll(scriptedActions);
     }
 

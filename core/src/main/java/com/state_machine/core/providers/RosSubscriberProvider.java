@@ -16,13 +16,15 @@ public class RosSubscriberProvider {
     private Subscriber<ExtendedState> extendedStateSubscriber;
     private Subscriber<NavSatFix> globalPositionGlobalSubscriber;
     private Subscriber<PoseStamped> localPositionPoseSubscriber;
+    private Subscriber<PoseStamped> visionPositionPoseSubscriber;
 
     public RosSubscriberProvider(ConnectedNode node){
         stateSubscriber = node.newSubscriber("mavros/state", State._TYPE);
         batteryStatusSubscriber = node.newSubscriber("mavros/battery", BatteryStatus._TYPE);
         extendedStateSubscriber = node.newSubscriber("mavros/extended_state", ExtendedState._TYPE);
         globalPositionGlobalSubscriber = node.newSubscriber("mavros/global_position/global", NavSatFix._TYPE);
-        localPositionPoseSubscriber = node.newSubscriber("mavros/vision_pose/pose", PoseStamped._TYPE);
+        localPositionPoseSubscriber = node.newSubscriber("mavros/local_position/pose", PoseStamped._TYPE);
+        visionPositionPoseSubscriber = node.newSubscriber("mavros/vision_pose/pose", PoseStamped._TYPE);
     }
 
     public Subscriber<State> getStateSubscriber() { return stateSubscriber; }
@@ -30,4 +32,5 @@ public class RosSubscriberProvider {
     public Subscriber<ExtendedState> getExtendedStateSubscriber() { return extendedStateSubscriber; }
     public Subscriber<NavSatFix> getGlobalPositionGlobalSubscriber() { return globalPositionGlobalSubscriber;}
     public Subscriber<PoseStamped> getLocalPositionPoseSubscriber() { return localPositionPoseSubscriber;}
+    public Subscriber<PoseStamped> getVisionPositionPoseSubscriber() { return visionPositionPoseSubscriber;}
 }

@@ -21,6 +21,7 @@ import org.ros.node.service.ServiceClient;
 import org.ros.node.service.ServiceResponseListener;
 import org.ros.node.topic.Publisher;
 import std_msgs.Header;
+import org.apache.commons.logging.Log;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
@@ -36,22 +37,27 @@ public class PX4FlyToAction extends Action {
     private Duration timeOut;
     private ServiceClient<SetModeRequest, SetModeResponse> setModeService;
     private int seq;
+    private Log logger;
 
-    public PX4FlyToAction(Waypoint objective,
+    public PX4FlyToAction(Log logger,
+                          Waypoint objective,
                           DroneStateTracker stateTracker,
                           RosPublisherProvider rosPublisherProvider,
                           Duration timeOut,
                           RosServiceProvider serviceProvider,
                           int seq){
+        this.logger =logger;
         this.seq = seq;
         setModeService = serviceProvider.getSetFCUModeService();
         this.setpointPositionLocalPub = rosPublisherProvider.getSetpointPositionLocalPublisher();
 
         this.objective = this.setpointPositionLocalPub.newMessage();
 
+        //temporarily store the objective in reference with world frame
         this.objective.getPose().getPosition().setX(objective.getX());
         this.objective.getPose().getPosition().setY(objective.getY());
         this.objective.getPose().getPosition().setZ(objective.getZ());
+
         this.objective.getHeader().setSeq(seq);
 
         this.stateTracker = stateTracker;
@@ -68,6 +74,15 @@ public class PX4FlyToAction extends Action {
         status = ActionStatus.Inactive;
 
         if(stateTracker.getDroneLanded() == DroneLanded.InAir){
+            //adjust the object to local
+            objective.getPose().getPosition().setX(objective.getPose().getPosition().getX() - stateTracker.getLocalOrigin()[0]);
+            objective.getPose().getPosition().setY(objective.getPose().getPosition().getY() - stateTracker.getLocalOrigin()[1]);
+            objective.getPose().getPosition().setZ(objective.getPose().getPosition().getZ() - stateTracker.getLocalOrigin()[2]);
+            //logger.warn("actual local origin at "
+            //        + stateTracker.getLocalOrigin()[0] + ","
+            //        + stateTracker.getLocalOrigin()[1] + ","
+            //        + stateTracker.getLocalOrigin()[2] + ".");
+
             objective.getHeader().setStamp(time);
             setpointPositionLocalPub.publish(objective);
             seq++;

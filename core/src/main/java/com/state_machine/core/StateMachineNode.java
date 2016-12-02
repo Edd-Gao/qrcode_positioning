@@ -37,7 +37,7 @@ public class StateMachineNode extends AbstractNodeMain {
         this.node = node;
         this.log = node.getLog();
         try {
-            Thread.sleep(10000); //forcing 5 seconds wait.
+            Thread.sleep(30000); //forcing 5 seconds wait.
 
             RosServiceProvider serviceProvider = new RosServiceProvider(node);
             RosSubscriberProvider subscriberProvider = new RosSubscriberProvider(node);
@@ -51,6 +51,7 @@ public class StateMachineNode extends AbstractNodeMain {
                     subscriberProvider.getBatteryStatusSubscriber(),
                     subscriberProvider.getExtendedStateSubscriber(),
                     subscriberProvider.getLocalPositionPoseSubscriber(),
+                    subscriberProvider.getVisionPositionPoseSubscriber(),
                     subscriberProvider.getGlobalPositionGlobalSubscriber()
             );
             actionProvider = new ActionProvider(log, serviceProvider, droneStateTracker, fileProvider, publisherProvider,timeOut,serverProvider );

@@ -35,7 +35,7 @@ public class ActionProvider implements FlyToActionFactory {
         this.rosServerProvider = rosServerProvider;
         this.timeOut = timeOut;
         this.logger = logger;
-        armAction = new ArmAction(serviceProvider.getArmingService(), stateTracker);
+        armAction = new ArmAction(logger, serviceProvider.getArmingService(), stateTracker);
         disarmAction = new DisarmAction(serviceProvider.getArmingService(), stateTracker);
         landingAction = new LandingAction(serviceProvider.getSetHoverControllerModeService(), stateTracker,rosServerProvider,timeOut);
         px4LandAction = new PX4LandAction(stateTracker,timeOut,serviceProvider.getLandService());
@@ -54,7 +54,7 @@ public class ActionProvider implements FlyToActionFactory {
     }
 
     public PX4FlyToAction getPX4FlyToAction(Waypoint objective,int seq){
-        return new PX4FlyToAction(objective,stateTracker,rosPublisherProvider,timeOut,serviceProvider,seq);
+        return new PX4FlyToAction(logger,objective,stateTracker,rosPublisherProvider,timeOut,serviceProvider,seq);
     }
 
     public SetFCUModeAction getSetFCUModeAction(String newMode){
