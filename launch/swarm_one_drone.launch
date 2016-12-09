@@ -1,11 +1,14 @@
 <launch>
     <arg name="fcu_url" default="$(arg fcu_url)" />
     <arg name="model_name" default="$(arg model_name)" />
+    <arg name="FlightScriptPath" default="$(arg FlightScriptPath)" />
 
     <include file="$(find swarm_sitl_launcher)/launch/px4_sitl.launch" >    
-    <arg name="fcu_url" value="$(arg fcu_url)" />
+    	<arg name="fcu_url" value="$(arg fcu_url)" />
     </include>
-    <include file="$(find state_machine)/launch/local.launch" />
+    <include file="$(find state_machine)/launch/swarm.launch">
+    	<arg name="FlightScriptPath" value="$(arg FlightScriptPath)" />
+    </include>
     <!--include file="$(find hover_controller)/launch/local.launch" /-->
 
     <node pkg="simulated_local_position" name="position_broadcast" type="position_broadcast.py">
