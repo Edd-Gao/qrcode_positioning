@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(state_machine_msgs)
+project(onboard_statemachine_msgs)
 
 SET(CMAKE_CXX_FLAGS "-std=c++11")
 
@@ -7,7 +7,6 @@ SET(CMAKE_CXX_FLAGS "-std=c++11")
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
   std_msgs
   message_generation
 )
@@ -56,6 +55,7 @@ find_package(catkin REQUIRED COMPONENTS
  add_service_files(
    FILES
    ActionStatus.srv
+   StateMachineControl.srv
  )
 
 ## Generate actions in the 'action' folder
