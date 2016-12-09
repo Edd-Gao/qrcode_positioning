@@ -2,7 +2,7 @@ package com.state_machine.core.providers;
 
 import org.ros.node.ConnectedNode;
 import org.ros.node.service.ServiceResponseBuilder;
-import state_machine_msgs.*;
+import onboard_statemachine_msgs.*;
 
 /**
  * Created by parallels on 8/18/16.

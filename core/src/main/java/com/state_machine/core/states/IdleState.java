@@ -9,17 +9,18 @@ import org.ros.node.service.ServiceClient;
 public class IdleState extends State {
 
     private long startTime;
+    private long duration;
     public IdleState(ActionProvider actionProvider,
                      ServiceClient<SetModeRequest, SetModeResponse> setModeService,
                      Log log, long duration) {
         super(actionProvider, setModeService, log);
+        this.duration = duration;
+        currentAction = null;
         startTime = System.currentTimeMillis();
-        actionQueue.add(actionProvider.getSetFCUModeAction("OFFBOARD"));
-        actionQueue.add(actionProvider.getDisarmAction());
     }
 
     public boolean isSafeToExit(){
-        if((System.currentTimeMillis() - startTime) > 3000)
+        if((System.currentTimeMillis() - startTime) > duration)
             return true;
         else
             return false;

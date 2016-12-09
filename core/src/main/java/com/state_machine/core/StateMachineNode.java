@@ -3,6 +3,7 @@ package com.state_machine.core;
 import com.state_machine.core.droneState.DroneStateTracker;
 import com.state_machine.core.providers.*;
 import com.state_machine.core.stateMachine.StateMachine;
+import com.state_machine.core.stateMachine.utils.StateControlInterface;
 import com.state_machine.core.states.State;
 import org.apache.commons.logging.Log;
 import org.ros.concurrent.CancellableLoop;
@@ -23,7 +24,6 @@ public class StateMachineNode extends AbstractNodeMain {
     private ActionProvider actionProvider;
     private StateProvider stateProvider;
     private FileProvider fileProvider;
-    private Queue<State> stateQueue;
 
     @Override
     public GraphName getDefaultNodeName() {
@@ -58,21 +58,16 @@ public class StateMachineNode extends AbstractNodeMain {
             stateProvider = new StateProvider(actionProvider, serviceProvider, publisherProvider, log, droneStateTracker);
             fileProvider = new FileProvider(rosParamProvider,actionProvider, stateProvider, log);
             //stateQueue = fileProvider.readScript("/home/firefly/catkin_ws/src/onboard_statemachine/flight_script/test_flight.json");
-            stateQueue = fileProvider.readScript(rosParamProvider.getFlightScriptPath());
-
+            //stateQueue = fileProvider.readScript(rosParamProvider.getFlightScriptPath());
             if(!serviceProvider.isConnected()) {
                 throw new Exception("service not connected, please run mavros first");
             }
 
             Thread.sleep(10000);
 
-        } catch(Exception e) {
-            log.fatal("Initialization failed", e);
-            System.exit(1);
-        }
+
 
         State initialState = stateProvider.getIdleState(0);
-        if(!stateQueue.isEmpty()) initialState = stateQueue.remove();
 
         stateMachine = new StateMachine(
                 initialState,
@@ -81,18 +76,25 @@ public class StateMachineNode extends AbstractNodeMain {
                 droneStateTracker
         );
 
+        final StateControlInterface stateControlInterface = new StateControlInterface(node,stateProvider,stateMachine,rosParamProvider,fileProvider);
+        stateControlInterface.wrapHandleRequest("start");
 
         node.executeCancellableLoop(new CancellableLoop() {
             @Override
             protected void loop() throws InterruptedException {
-                if(!stateQueue.isEmpty()
+                if(stateControlInterface.getStateQueue() != null
+                   && !stateControlInterface.getStateQueue().isEmpty()
                    && stateMachine.getCurrentState().isIdling()
                    && stateMachine.getCurrentState().isSafeToExit()){
-                    stateMachine.setState(stateQueue.remove());
+                    stateMachine.setState(stateControlInterface.getStateQueue().remove());
                 }
                 stateMachine.update(node.getCurrentTime());
                 Thread.sleep(20);
             }
         });
+        } catch(Exception e) {
+            log.fatal("Initialization failed", e);
+            System.exit(1);
+        }
     }
 }

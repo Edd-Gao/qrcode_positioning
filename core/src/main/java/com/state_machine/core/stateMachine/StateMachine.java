@@ -15,12 +15,14 @@ public class StateMachine {
     private State emergencyLanding;
     private Log logger;
     private DroneStateTracker tracker;
+    private boolean statemachineRunningFlag;
 
     public StateMachine(State initialState, State emergencyLanding, Log log, DroneStateTracker tracker){
         this.emergencyLanding = emergencyLanding;
         this.logger = log;
         this.tracker = tracker;
         currentState = initialState;
+        statemachineRunningFlag = false;
         initialState.enterAction();
     }
 
@@ -29,7 +31,9 @@ public class StateMachine {
         ErrorType error = failsafeCheck();
         switch (error) {
             case NoError:
-                currentState.update(time);
+                if(statemachineRunningFlag) {
+                    currentState.update(time);
+                }
                 break;
             case ConnectionFailure:
                 if (currentState != emergencyLanding) {
@@ -94,6 +98,10 @@ public class StateMachine {
         currentState = newState;
         newState.enterAction();
     }
+
+    public boolean getStatemachineRunningFlag(){return statemachineRunningFlag;}
+
+    public void setStatemachineRunningFlag(boolean statemachineRunningFlag){this.statemachineRunningFlag = statemachineRunningFlag;}
 
     public StateHandle getCurrentState(){
         return currentState;
