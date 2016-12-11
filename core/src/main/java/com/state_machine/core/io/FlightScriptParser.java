@@ -94,6 +94,8 @@ public class FlightScriptParser {
                 return actionProvider.getPX4TakeoffAction(repr.target_heightm);
             case "PX4LandAction":
                 return actionProvider.getPX4LandAction();
+            case "DecentralizedAction":
+                return actionProvider.getDecentralizedAction();
             case "FlyToAction":
                 List<Float> xyz1 = repr.waypoint;
                 Waypoint objective1 = new Waypoint(xyz1.get(0), xyz1.get(1), xyz1.get(2));

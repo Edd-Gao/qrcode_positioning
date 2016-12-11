@@ -1,6 +1,7 @@
 package com.state_machine.core;
 
 import com.state_machine.core.droneState.DroneStateTracker;
+import com.state_machine.core.droneState.NeighborStateTracker;
 import com.state_machine.core.providers.*;
 import com.state_machine.core.stateMachine.StateMachine;
 import com.state_machine.core.stateMachine.utils.StateControlInterface;
@@ -21,6 +22,7 @@ public class StateMachineNode extends AbstractNodeMain {
     private Log log;
     private StateMachine stateMachine;
     private DroneStateTracker droneStateTracker;
+    private NeighborStateTracker neighborStateTracker;
     private ActionProvider actionProvider;
     private StateProvider stateProvider;
     private FileProvider fileProvider;
@@ -55,7 +57,8 @@ public class StateMachineNode extends AbstractNodeMain {
                     subscriberProvider.getVisionPositionPoseSubscriber(),
                     subscriberProvider.getGlobalPositionGlobalSubscriber()
             );
-            actionProvider = new ActionProvider(log, serviceProvider, droneStateTracker, fileProvider, publisherProvider,timeOut,serverProvider );
+            neighborStateTracker = new NeighborStateTracker(node);
+            actionProvider = new ActionProvider(log, serviceProvider, droneStateTracker, neighborStateTracker,fileProvider, publisherProvider,timeOut,serverProvider );
             stateProvider = new StateProvider(actionProvider, serviceProvider, publisherProvider, log, droneStateTracker);
             fileProvider = new FileProvider(rosParamProvider,actionProvider, stateProvider, log);
             //stateQueue = fileProvider.readScript("/home/firefly/catkin_ws/src/onboard_statemachine/flight_script/test_flight.json");

@@ -3,6 +3,7 @@ package com.state_machine.core.providers;
 import com.state_machine.core.actions.*;
 import com.state_machine.core.droneState.DroneStateTracker;
 import com.state_machine.core.actions.util.Waypoint;
+import com.state_machine.core.droneState.NeighborStateTracker;
 import org.apache.commons.logging.Log;
 import org.ros.message.Duration;
 
@@ -10,11 +11,13 @@ public class ActionProvider implements FlyToActionFactory {
 
     private RosServiceProvider serviceProvider;
     private DroneStateTracker stateTracker;
+    private NeighborStateTracker neighborStateTracker;
     private RosPublisherProvider rosPublisherProvider;
     private ArmAction armAction;
     private DisarmAction disarmAction;
     private LandingAction landingAction;
     private PX4LandAction px4LandAction;
+    private DecentralizedAction decentralizedAction;
     private FileProvider fileProvider;
     private RosServerProvider rosServerProvider;
     private Duration timeOut;
@@ -24,12 +27,14 @@ public class ActionProvider implements FlyToActionFactory {
             Log logger,
             RosServiceProvider serviceProvider,
             DroneStateTracker stateTracker,
+            NeighborStateTracker neighborStateTracker,
             FileProvider fileProvider,
             RosPublisherProvider rosPublisherProvider,
             Duration timeOut,
             RosServerProvider rosServerProvider){
         this.serviceProvider = serviceProvider;
         this.stateTracker = stateTracker;
+        this.neighborStateTracker = neighborStateTracker;
         this.fileProvider = fileProvider;
         this.rosPublisherProvider = rosPublisherProvider;
         this.rosServerProvider = rosServerProvider;
@@ -39,6 +44,7 @@ public class ActionProvider implements FlyToActionFactory {
         disarmAction = new DisarmAction(serviceProvider.getArmingService(), stateTracker);
         landingAction = new LandingAction(serviceProvider.getSetHoverControllerModeService(), stateTracker,rosServerProvider,timeOut);
         px4LandAction = new PX4LandAction(stateTracker,timeOut,serviceProvider.getLandService());
+        decentralizedAction = new DecentralizedAction(logger,stateTracker,neighborStateTracker,timeOut);
     }
 
     public ArmAction getArmAction(){ return armAction; }
@@ -66,4 +72,6 @@ public class ActionProvider implements FlyToActionFactory {
     public PX4TakeoffAction getPX4TakeoffAction(double target_heightm){
         return new PX4TakeoffAction(logger, stateTracker,target_heightm,timeOut,serviceProvider.getTakeoffService());
     }
+
+    public DecentralizedAction getDecentralizedAction(){return decentralizedAction;}
 }
