@@ -3,6 +3,7 @@ package com.state_machine.core.droneState;
 import geometry_msgs.Pose;
 import geometry_msgs.PoseStamped;
 import geometry_msgs.PoseWithCovariance;
+import geometry_msgs.TwistStamped;
 import mavros_msgs.ExtendedState;
 import mavros_msgs.State;
 import mavros_msgs.BatteryStatus;
@@ -19,6 +20,7 @@ public class DroneStateTracker {
     private boolean armed;      //the drone arming status
     private float battery;              //battery remaining
     private DroneLanded droneLanded;    //the drone landing status
+    private double[] localVelocity = new double[3];
     private double[] localPosition = new double[3];
     private double[] localOrigin = new double[3];// temporally use this variable to store the local origin coordinate in world frame.
     private double[] visionPosition = new double[3];
@@ -31,6 +33,7 @@ public class DroneStateTracker {
             Subscriber<State> stateSubscriber,
             Subscriber<BatteryStatus> batterySubscriber,
             Subscriber<ExtendedState> extendedStateSubscriber,
+            Subscriber<TwistStamped> localPositionVelocitySubscriber,
             Subscriber<PoseStamped> localPositionPoseSubscriber,
             Subscriber<PoseStamped> visionPositionPoseSubscriber,
             Subscriber<NavSatFix> globalPositionGlobalSubscriber
@@ -44,6 +47,16 @@ public class DroneStateTracker {
             }
         };
         globalPositionGlobalSubscriber.addMessageListener(globalPositionListener);
+
+        MessageListener<TwistStamped> localVelocityListener = new MessageListener<TwistStamped>() {
+            @Override
+            public void onNewMessage(TwistStamped twistStamped) {
+                localVelocity[0] = twistStamped.getTwist().getLinear().getX();
+                localVelocity[1] = twistStamped.getTwist().getLinear().getY();
+                localVelocity[2] = twistStamped.getTwist().getLinear().getZ();
+            }
+        };
+        localPositionVelocitySubscriber.addMessageListener(localVelocityListener);
 
         MessageListener<PoseStamped> localPoseListener = new MessageListener<PoseStamped>() {
             @Override
@@ -115,6 +128,7 @@ public class DroneStateTracker {
     public String getFCUMode() { return FCUMode;}
     public double[] getLocalOrigin(){return localOrigin;}
     public double[] getVisionPosition(){return visionPosition; }
+    public double[] getLocalVelocity(){return localVelocity;}
 
     //setters
     public void setLocalOrigin(double[] originValue){

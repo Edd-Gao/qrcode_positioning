@@ -50,6 +50,7 @@ public class StateMachineNode extends AbstractNodeMain {
                     subscriberProvider.getStateSubscriber(),
                     subscriberProvider.getBatteryStatusSubscriber(),
                     subscriberProvider.getExtendedStateSubscriber(),
+                    subscriberProvider.getLocalPositionVelocitySubscriber(),
                     subscriberProvider.getLocalPositionPoseSubscriber(),
                     subscriberProvider.getVisionPositionPoseSubscriber(),
                     subscriberProvider.getGlobalPositionGlobalSubscriber()
