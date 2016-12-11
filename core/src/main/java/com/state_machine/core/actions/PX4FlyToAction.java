@@ -27,7 +27,7 @@ import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 
 /**
- * Created by firefly on 10/23/16.
+ * Created by Gao Changyu on 10/23/16.
  */
 public class PX4FlyToAction extends Action {
 
