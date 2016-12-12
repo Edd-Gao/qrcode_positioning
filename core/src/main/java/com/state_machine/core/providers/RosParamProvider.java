@@ -39,4 +39,18 @@ public class RosParamProvider {
 
     public String getPropertiesPath(){ return params.getString("state_machine/PropertiesPath");}
 
+    public double getD0(){return params.getDouble("~/DecentralizedAction/D0",12.0);}
+
+    public double getC(){return params.getDouble("~/DecentralizedAction/C", 0.2);}
+
+    public double getLamda(){return params.getDouble("~/DecentralizedAction/Lamda", 1e-3);}
+
+    public int getHp(){return params.getInteger("~/DecentralizedAction/Hp",2);}
+
+    public int getHu(){return params.getInteger("~/DecentralizedAction/Hu", 1);}
+
+    public double getTs(){return params.getDouble("~/DecentralizedAction/Ts", 0.20);}
+
+    public double getVmax(){return params.getDouble("~/DecentralizedAction/Vmax", 3.5);}
+
 }

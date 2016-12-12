@@ -30,6 +30,7 @@ repositories {
 }
 
 dependencies {
+  compile group:'org.ejml',name:'all',version:'0.30'
   compile 'org.ros.rosjava_core:rosjava:[0.2,0.3)'
   compile ':mavros_msgs-0.17.0'
   compile ':hover_controller_msgs-0.0.1'

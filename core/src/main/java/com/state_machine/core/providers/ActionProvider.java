@@ -31,7 +31,8 @@ public class ActionProvider implements FlyToActionFactory {
             FileProvider fileProvider,
             RosPublisherProvider rosPublisherProvider,
             Duration timeOut,
-            RosServerProvider rosServerProvider){
+            RosServerProvider rosServerProvider,
+            RosParamProvider rosParamProvider){
         this.serviceProvider = serviceProvider;
         this.stateTracker = stateTracker;
         this.neighborStateTracker = neighborStateTracker;
@@ -44,7 +45,7 @@ public class ActionProvider implements FlyToActionFactory {
         disarmAction = new DisarmAction(serviceProvider.getArmingService(), stateTracker);
         landingAction = new LandingAction(serviceProvider.getSetHoverControllerModeService(), stateTracker,rosServerProvider,timeOut);
         px4LandAction = new PX4LandAction(stateTracker,timeOut,serviceProvider.getLandService());
-        decentralizedAction = new DecentralizedAction(logger,stateTracker,neighborStateTracker,timeOut);
+        decentralizedAction = new DecentralizedAction(logger,stateTracker,neighborStateTracker,timeOut, rosParamProvider, , rosServiceProvider);
     }
 
     public ArmAction getArmAction(){ return armAction; }

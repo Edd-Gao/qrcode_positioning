@@ -22,6 +22,7 @@ public class NeighborStateTracker {
     private ConnectedNode node;
     private String thisDroneName;
     private MasterStateClient masterStateClient;
+    private int neighborNum;
     private Vector<Subscriber<PoseStamped> > neighborVisionPoseSubscribers;
     private Vector<Subscriber<TwistStamped> > neighborLocalVelocitySubscribers;
     private Vector<double[]> neighborVisionPoses;
@@ -39,6 +40,7 @@ public class NeighborStateTracker {
         neighborLocalVelocitySubscribers = new Vector<>();
         neighborLocalVelocities = new Vector<>();
         neighborVisionPoses = new Vector<>();
+        neighborNum = 0;
     }
 
     public boolean UpdataNeighborList(){
@@ -90,10 +92,12 @@ public class NeighborStateTracker {
                 break;
             }
         }
+        neighborNum = neighborIndex;
         return true;
     }
 
     public Vector<double[]> getNeighborVisionPoses(){return neighborVisionPoses;}
     public Vector<double[]> getNeighborLocalVelocities(){return neighborLocalVelocities;}
+    public int getNeighborNum(){return neighborNum;}
 
 }

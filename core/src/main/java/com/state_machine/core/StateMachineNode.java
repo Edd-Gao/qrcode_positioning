@@ -8,13 +8,10 @@ import com.state_machine.core.stateMachine.utils.StateControlInterface;
 import com.state_machine.core.states.State;
 import org.apache.commons.logging.Log;
 import org.ros.concurrent.CancellableLoop;
-import org.ros.exception.ServiceNotFoundException;
 import org.ros.message.Duration;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
-
-import java.util.Queue;
 
 public class StateMachineNode extends AbstractNodeMain {
 
@@ -58,7 +55,7 @@ public class StateMachineNode extends AbstractNodeMain {
                     subscriberProvider.getGlobalPositionGlobalSubscriber()
             );
             neighborStateTracker = new NeighborStateTracker(node);
-            actionProvider = new ActionProvider(log, serviceProvider, droneStateTracker, neighborStateTracker,fileProvider, publisherProvider,timeOut,serverProvider );
+            actionProvider = new ActionProvider(log, serviceProvider, droneStateTracker, neighborStateTracker,fileProvider, publisherProvider,timeOut,serverProvider, rosParamProvider);
             stateProvider = new StateProvider(actionProvider, serviceProvider, publisherProvider, log, droneStateTracker);
             fileProvider = new FileProvider(rosParamProvider,actionProvider, stateProvider, log);
             //stateQueue = fileProvider.readScript("/home/firefly/catkin_ws/src/onboard_statemachine/flight_script/test_flight.json");
