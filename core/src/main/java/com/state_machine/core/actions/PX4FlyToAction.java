@@ -75,8 +75,12 @@ public class PX4FlyToAction extends Action {
 
         if(stateTracker.getDroneLanded() == DroneLanded.InAir){
             //adjust the object to local
-            objective.getPose().getPosition().setX(objective.getPose().getPosition().getX() - stateTracker.getLocalOrigin()[0]);
-            objective.getPose().getPosition().setY(objective.getPose().getPosition().getY() - stateTracker.getLocalOrigin()[1]);
+            double temp = objective.getPose().getPosition().getX() - stateTracker.getLocalOrigin()[0];
+            objective.getPose().getPosition().setX(-(objective.getPose().getPosition().getY()-stateTracker.getLocalOrigin()[1]));
+            objective.getPose().getPosition().setY(temp);
+
+            //objective.getPose().getPosition().setX(objective.getPose().getPosition().getY() - stateTracker.getLocalOrigin()[1]);
+            //objective.getPose().getPosition().setY(objective.getPose().getPosition().getX() - stateTracker.getLocalOrigin()[0]);
             objective.getPose().getPosition().setZ(objective.getPose().getPosition().getZ() - stateTracker.getLocalOrigin()[2]);
             //logger.warn("actual local origin at "
             //        + stateTracker.getLocalOrigin()[0] + ","

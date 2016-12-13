@@ -36,7 +36,7 @@ public class StateMachineNode extends AbstractNodeMain {
         this.node = node;
         this.log = node.getLog();
         try {
-            Thread.sleep(30000); //forcing 5 seconds wait.
+            Thread.sleep(20000); //forcing 5 seconds wait.
 
             RosServiceProvider serviceProvider = new RosServiceProvider(node);
             RosSubscriberProvider subscriberProvider = new RosSubscriberProvider(node);

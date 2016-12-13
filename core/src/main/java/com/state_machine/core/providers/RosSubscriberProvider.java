@@ -15,6 +15,7 @@ public class RosSubscriberProvider {
     private Subscriber<State> stateSubscriber;
     private Subscriber<BatteryStatus> batteryStatusSubscriber;
     private Subscriber<ExtendedState> extendedStateSubscriber;
+
     private Subscriber<NavSatFix> globalPositionGlobalSubscriber;
     private Subscriber<TwistStamped> localPositionVelocitySubscriber;
     private Subscriber<PoseStamped> localPositionPoseSubscriber;
