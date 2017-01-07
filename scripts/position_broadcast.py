@@ -27,6 +27,7 @@ def gazeboCallBack(data, model_name):
         pose.position.x = -pose.position.y
 
         pose.position.y = temp
+	pose.position.z = pose.position.z
 
         header = Header()
 
@@ -38,7 +39,7 @@ def gazeboCallBack(data, model_name):
 
 
 def positionBroadcast():
-    rospy.init_node('position_broadcast', anonymous=True)
+    rospy.init_node('position_broadcast', anonymous=False)
 
     while not rospy.has_param('~model_name'):
         pass
