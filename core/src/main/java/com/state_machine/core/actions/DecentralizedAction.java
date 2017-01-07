@@ -83,7 +83,7 @@ public class DecentralizedAction extends Action{
         this.log = log;
         this.stateTracker = stateTracker;
         this.neighborStateTracker = neighborStateTracker;
-        this.timeOut = new Duration(1000);
+        this.timeOut = timeOut;
         this.rosParamProvider = rosParamProvider;
         this.velocitySetpointPublisher = rosPublisherProvider.getSetpointVelocityPublisher();
         this.setModeService = rosServiceProvider.getSetFCUModeService();
@@ -213,7 +213,7 @@ public class DecentralizedAction extends Action{
                 X.insertIntoThis(k * 2 * (Ni + 1), 0, A.mult(X.extractMatrix((k - 1) * 2 * (Ni + 1), k * 2 * (Ni + 1), 0, SimpleMatrix.END)));
             }
 
-            log.info("X: " + X.toString());
+            //log.info("X: " + X.toString());
             for(int k = 1; k<(Hp + 1);++k){
                 PX.insertIntoThis((k-1)*2*(Ni+1),0,array_pow(A,k));
             }

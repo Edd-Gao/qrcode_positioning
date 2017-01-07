@@ -49,7 +49,7 @@ public class RosParamProvider {
 
     public int getHu(){return params.getInteger("~/DecentralizedAction/Hu", 2);}
 
-    public double getTs(){return params.getDouble("~/DecentralizedAction/Ts", 0.20);}
+    public double getTs(){return params.getDouble("~/DecentralizedAction/Ts", 0.10);}
 
     public double getVmax(){return params.getDouble("~/DecentralizedAction/Vmax", 3.5);}
 
