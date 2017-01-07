@@ -11,23 +11,47 @@
     </include>
     <include>
       <uri>model://iris_1</uri>
-      <pose frame=''>0 0 0 0 -0 0</pose>
+      <pose frame=''>0 0 0 0 0 0</pose>
     </include>
     <include>
       <uri>model://iris_2</uri>
-      <pose frame=''>-5 -5 0 0 -0 0</pose>
+      <pose frame=''>5 0 0 0 0 0</pose>
     </include>
     <include>
       <uri>model://iris_3</uri>
-      <pose frame=''>-5 5 0 0 -0 0</pose>
+      <pose frame=''>10 0 0 0 0 0</pose>
     </include>
     <include>
       <uri>model://iris_4</uri>
-      <pose frame=''>5 -5 0 0 -0 0</pose>
+      <pose frame=''>15 0 0 0 0 0</pose>
     </include>
     <include>
-      <uri>model://asphalt_plane</uri>
+      <uri>model://iris_5</uri>
+      <pose frame=''>20 0 0 0 0 0</pose>
     </include>
+<!--include>
+      <uri>model://iris_6</uri>
+      <pose frame=''>0 5 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://iris_7</uri>
+      <pose frame=''>5 5 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://iris_8</uri>
+      <pose frame=''>10 5 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://iris_9</uri>
+      <pose frame=''>15 5 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://iris_10</uri>
+      <pose frame=''>20 5 0 0 0 0</pose>
+    </include-->
+    <!--include>
+      <uri>model://asphalt_plane</uri>
+    </include-->
     <physics name='default_physics' default='0' type='ode'>
       <gravity>0 0 -9.8066</gravity>
       <ode>

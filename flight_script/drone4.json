@@ -8,27 +8,14 @@
         },
         {
           "action":"PX4TakeoffAction",
-          "target_heightm":10
+          "target_heightm":30
         },
         {
-          "action":"PX4FlyToAction",
-          "waypoint":[10.0,10.0,10.0]
+          "action":"DecentralizedAction"
         },
-        {
-          "action":"PX4FlyToAction",
-          "waypoint":[-10.0,10.0,10.0]
-        },
-        {
-          "action":"PX4FlyToAction",
-          "waypoint":[-10.0,-10.0,10.0]
-        },
-        {
-          "action":"PX4FlyToAction",
-          "waypoint":[15.0,-10.0,10.0]
-        },
-        {
-          "action":"PX4LandAction"
-        }
+	{
+	  "action":"PX4LandAction"
+	}
       ]
     }
   ]
