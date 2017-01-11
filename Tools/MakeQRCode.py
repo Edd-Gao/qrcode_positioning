@@ -1,22 +1,25 @@
 from PIL import Image
 import qrencode
 
-lines = 10
-rows = 10
-margin = 50
-size = (200, 200)
-qrsize = "20cm"
 
-width = lines * size[0] + (lines + 1) * margin
-height = rows * size[1] + (rows + 1) * margin
+#parameters
+lines = 10  #total lines of qrcodes
+rows = 10   #total rows of qrcodes
+margin = 50 #margin value in pixels
+qrsize = 200 # qrcode size in milimeters
 
-result = Image.new("RGB", (width, height), (255, 255, 255))
+width = lines * qrsize + (lines + 1) * margin   #total width of the generated image
+height = rows * qrsize + (rows + 1) * margin    #total height of the generated image
+
+result = Image.new("RGB", (width, height), (255, 255, 255)) #the result image
 
 for i in range(rows):
     for j in range(lines):
-        version, rawsize, qrcodeIm = qrencode.encode(qrsize + "-" + str(i) + str(j))
-        qrcodeIm = qrcodeIm.resize(size)
-        box = (j*size[0] + (j+1)*margin, i*size[1] + (i+1)*margin)
+        coordinate_x = i * (qrsize + margin)
+        coordinate_y = j * (qrsize + margin)
+        version, rawsize, qrcodeIm = qrencode.encode(qrsize + "mm-" + str(coordinate_x/10) + "," + str(coordinate_y/10))
+        qrcodeIm = qrcodeIm.resize((qrsize, qrsize))
+        box = (j*qrsize + (j+1)*margin, i*qrsize + (i+1)*margin)
         result.paste(qrcodeIm, box)
 
 result.save("qrcode.png")
