@@ -167,3 +167,5 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
+#generated project files
+*.png
