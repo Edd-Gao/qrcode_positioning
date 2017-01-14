@@ -72,9 +72,10 @@ int main(int argc, char **argv)
     //Initialize the state estimator, while wrapping any exceptions so we know where it came from
     stateEstimator.reset(new QRCodeStateEstimator(cam_info.width, cam_info.height, cameraMatrix,distortionParameters));
 
+    ros::init(argc,argv,"qrcode_positioning");
     ros::NodeHandle nh;
     image_transport::ImageTransport it(nh);
-    image_transport::Subscriber sub = it.subscribe("~/camera/image_raw", 1, imageCallback);
+    image_transport::Subscriber sub = it.subscribe("camera/image_raw", 1, imageCallback);
 
     ros::spin();
 
