@@ -29,3 +29,8 @@ RUN echo "source /catkin_ws/devel/setup.bash" >> /.bashrc
 #install image processing related packages
 RUN apt-get install ros-indigo-camera-calibration-parsers -y
 RUN apt-get install ros-indigo-ecl-command-line -y
+RUN apt-get install ros-indigo-image-transport -y
+RUN apt-get install ros-indigo-cv-bridge -y
+RUN apt-get install ros-indigo-opencv3 -y
+RUN apt-get install libzbar-dev -y
+RUN apt-get install ros-indigo-tf2-ros -y
