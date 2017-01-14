@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>qr-positioning</name>
+  <name>qrcode_positioning</name>
   <version>0.1.0</version>
-  <description>The qr-positioning package</description>
+  <description>The qrcode_positioning package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
