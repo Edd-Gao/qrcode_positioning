@@ -1,0 +1,11 @@
+<launch>
+    <node pkg="raspicam" type="raspicam_raw_node" name="camera">
+        <param name="framerate" value="10"/>
+        <param name="width" value= "640" />
+        <param name="height" value="480" />
+    </node>
+
+    <node pkg="qrcode_positioning" type="qrcode_positioning_node" name="qrcode_positioning">
+        <args name="-f" value="~/Desktop/plain/camera.ini" />
+    </node>
+</launch>
