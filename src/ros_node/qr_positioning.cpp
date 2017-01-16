@@ -10,6 +10,11 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 #include <memory>
+#include <tf2/LinearMath/Matrix3x3.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_ros/static_transform_broadcaster.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/transform_listener.h>
 
 std::unique_ptr<QRCodeStateEstimator> stateEstimator;
 
@@ -29,7 +34,11 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msg)
 
     //Print out values of camera's pose matrix
     if(thereIsANewFrame){
-        std::cout<<cameraPoseBuffer<<std::endl;
+        //initialize tf2 broadcastors
+        tf2_ros::TransformBroadcaster marker_br;    //broadcast the marker to marker to marker basis transform
+        tf2_ros::TransformBroadcaster drone_cam_br; //broadcast the drone camera to marker transform
+
+        ROS_DEBUG("QRCodeIdentifierBuffer:%s",QRCodeIdentifierBuffer);
     }
 
 }
@@ -47,6 +56,7 @@ int main(int argc, char **argv)
         ROS_ERROR("failed to subscribe to camera/image_raw");
         exit(-1);
     }
+
 
 
     //parse command line arguments
@@ -99,7 +109,27 @@ int main(int argc, char **argv)
     //Initialize the state estimator, while wrapping any exceptions so we know where it came from
     stateEstimator.reset(new QRCodeStateEstimator(cam_info.width, cam_info.height, cameraMatrix,distortionParameters,true));
 
+    //initialize tf2 broadcasters
+    tf2_ros::StaticTransformBroadcaster marker_basis_br;    //broadcast the marker basis to world transform
 
+    //marker basis initialization
+    geometry_msgs::TransformStamped marker_basis_transform_stamped;
+    marker_basis_transform_stamped.header.stamp = ros::Time::now();
+    marker_basis_transform_stamped.header.frame_id = "world";
+    marker_basis_transform_stamped.child_frame_id = "marker_basis";
+
+    marker_basis_transform_stamped.transform.translation.x = 0;
+    marker_basis_transform_stamped.transform.translation.y = 0;
+    marker_basis_transform_stamped.transform.translation.z = 3.0;
+    tf2::Quaternion q;
+    q.setRPY(0,0,0);
+    marker_basis_transform_stamped.transform.rotation.x = q.x();
+    marker_basis_transform_stamped.transform.rotation.y = q.y();
+    marker_basis_transform_stamped.transform.rotation.z = q.z();
+    marker_basis_transform_stamped.transform.rotation.w = q.w();
+
+    //broadcast marker basis
+    marker_basis_br.sendTransform(marker_basis_transform_stamped);
 
     ros::spin();
 
