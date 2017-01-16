@@ -36,18 +36,45 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msg)
 
 int main(int argc, char **argv)
 {
+    ros::init(argc,argv,"qrcode_positioning");
+    ros::NodeHandle nh;
+    image_transport::ImageTransport it(nh);
+    image_transport::Subscriber sub = it.subscribe("camera/image_raw", 1, imageCallback);
+
+    if(sub != NULL){
+        ROS_INFO("subscribe to camera/image_raw");
+    }else{
+        ROS_ERROR("failed to subscribe to camera/image_raw");
+        exit(-1);
+    }
+
 
     //parse command line arguments
     ecl::CmdLine cmd("qrcode positioning node.");
-    ecl::ValueArg<std::string> pathArg("f","file","calibration file to read",true,"~/.calibration/default.ini","string");
+    ecl::ValueArg<std::string> pathArg("f","file","calibration file to read",false,"/home/calibrations/default.ini","string");
     cmd.add(pathArg);
     cmd.parse(argc,argv);
     std::string filePath = pathArg.getValue();
 
+    if(filePath.size() > 0){
+        ROS_DEBUG("calibration file path:%s",filePath.c_str());
+    }else{
+        ROS_ERROR("empty calibration file path");
+        exit(-2);
+    }
+
+    bool success;
     //read camera calibration info
     std::string camera_name;
     sensor_msgs::CameraInfo cam_info;
-    camera_calibration_parsers::readCalibration(filePath, camera_name, cam_info);
+    success = camera_calibration_parsers::readCalibration(filePath, camera_name, cam_info);
+
+    if(success){
+        ROS_DEBUG("calibration readed");
+    }else{
+        ROS_ERROR("read calibration file failed");
+        exit(-3);
+    }
 
     //Define camera matrix according to webcam calibration (from OpenCV camera calibration file)
     cv::Mat_<double> cameraMatrix(3,3);
@@ -70,12 +97,9 @@ int main(int argc, char **argv)
     distortionParameters.at<double>(0, 4) = cam_info.D[4];
 
     //Initialize the state estimator, while wrapping any exceptions so we know where it came from
-    stateEstimator.reset(new QRCodeStateEstimator(cam_info.width, cam_info.height, cameraMatrix,distortionParameters));
+    stateEstimator.reset(new QRCodeStateEstimator(cam_info.width, cam_info.height, cameraMatrix,distortionParameters,true));
 
-    ros::init(argc,argv,"qrcode_positioning");
-    ros::NodeHandle nh;
-    image_transport::ImageTransport it(nh);
-    image_transport::Subscriber sub = it.subscribe("camera/image_raw", 1, imageCallback);
+
 
     ros::spin();
 

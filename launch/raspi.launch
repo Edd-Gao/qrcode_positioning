@@ -3,9 +3,9 @@
         <param name="framerate" value="10"/>
         <param name="width" value= "640" />
         <param name="height" value="480" />
+        <remap from="/camera/image" to="/camera/image_raw" />
     </node>
 
-    <node pkg="qrcode_positioning" type="qrcode_positioning_node" name="qrcode_positioning">
-        <args name="-f" value="~/Desktop/plain/camera.ini" />
+    <node pkg="qrcode_positioning" type="qrcode_positioning_node" args="-f /home/can/Desktop/plain/camera.ini --" name="qrcode_positioning">
     </node>
 </launch>
