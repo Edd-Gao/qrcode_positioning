@@ -9,6 +9,7 @@ IF (WIN32)
             "c:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include"
             "c:/docker_shared/include"
             "C:/opencv/build/include"
+            "C:/local/boost_1_58_0"
     )
 
     add_executable(test_TCLAP src/unit_test/test-TCLAP.cpp)
@@ -22,6 +23,7 @@ else ()
             ecl_command_line
             sensor_msgs
             image_transport
+            tf2_ros
             )
 
     ## System dependencies are found with CMake's conventions

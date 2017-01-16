@@ -15,6 +15,7 @@
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
+#include <boost/algorithm/string.hpp>
 
 std::unique_ptr<QRCodeStateEstimator> stateEstimator;
 
@@ -31,14 +32,52 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msg)
     bool thereIsANewFrame = false;
 
     thereIsANewFrame = stateEstimator->estimateStateFromBGRFrame(cv_ptr->image, cameraPoseBuffer, QRCodeIdentifierBuffer, QRCodeDimensionBuffer);
-
     //Print out values of camera's pose matrix
     if(thereIsANewFrame){
         //initialize tf2 broadcastors
         tf2_ros::TransformBroadcaster marker_br;    //broadcast the marker to marker to marker basis transform
         tf2_ros::TransformBroadcaster drone_cam_br; //broadcast the drone camera to marker transform
 
-        ROS_DEBUG("QRCodeIdentifierBuffer:%s",QRCodeIdentifierBuffer);
+        //ROS_INFO("QRCodeIdentifierBuffer:%s",QRCodeIdentifierBuffer);
+        std::vector<std::string> coordinate_str_vec;
+        boost::split(coordinate_str_vec,QRCodeIdentifierBuffer,boost::is_any_of(","));
+
+        if(coordinate_str_vec.size() != 2){
+            ROS_INFO("coordinate in the qrcode is not 2 ,but %d, omitting...", coordinate_str_vec.size());
+        }else{
+            geometry_msgs::TransformStamped marker_transform_stamped;
+            marker_transform_stamped.header.stamp = ros::Time::now();
+            marker_transform_stamped.header.frame_id = "marker_basis";
+            marker_transform_stamped.child_frame_id = "marker";
+
+            marker_transform_stamped.transform.translation.x = std::stod(coordinate_str_vec[0]);
+            marker_transform_stamped.transform.translation.y = std::stod(coordinate_str_vec[1]);
+            marker_transform_stamped.transform.translation.z = 0;
+            marker_transform_stamped.transform.rotation.w = 1;
+            marker_transform_stamped.transform.rotation.x = 0;
+            marker_transform_stamped.transform.rotation.y = 0;
+            marker_transform_stamped.transform.rotation.z = 0;
+
+            marker_br.sendTransform(marker_transform_stamped);
+
+            geometry_msgs::TransformStamped drone_base_transform_stamped;
+            drone_base_transform_stamped.header.stamp = ros::Time::now();
+            drone_base_transform_stamped.header.frame_id = "marker";
+            drone_base_transform_stamped.child_frame_id = "drone_base";
+
+            drone_base_transform_stamped.transform.translation.x =cameraPoseBuffer.at<double>(0,3);
+            drone_base_transform_stamped.transform.translation.y =cameraPoseBuffer.at<double>(1,3);
+            drone_base_transform_stamped.transform.translation.z =cameraPoseBuffer.at<double>(2,3);
+            tf2::Matrix3x3 m;
+            tf2::Quaternion q;
+            m.setValue(cameraPoseBuffer.at<double>(0,0),cameraPoseBuffer.at<double>(0,1),cameraPoseBuffer.at<double>(0,2),cameraPoseBuffer.at<double>(1,0),cameraPoseBuffer.at<double>(1,1),cameraPoseBuffer.at<double>(1,2),cameraPoseBuffer.at<double>(2,0),cameraPoseBuffer.at<double>(2,1),cameraPoseBuffer.at<double>(2,2));
+            m.getRotation(q);
+            drone_base_transform_stamped.transform.rotation.w = q.w();
+            drone_base_transform_stamped.transform.rotation.x = q.x();
+            drone_base_transform_stamped.transform.rotation.y = q.y();
+            drone_base_transform_stamped.transform.rotation.z = q.z();
+            drone_cam_br.sendTransform(drone_base_transform_stamped);
+        }
     }
 
 }
