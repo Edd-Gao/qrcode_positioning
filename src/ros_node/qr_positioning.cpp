@@ -34,13 +34,19 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msg)
     thereIsANewFrame = stateEstimator->estimateStateFromBGRFrame(cv_ptr->image, cameraPoseBuffer, QRCodeIdentifierBuffer, QRCodeDimensionBuffer);
     //Print out values of camera's pose matrix
     if(thereIsANewFrame){
+        ROS_INFO("new qrcode");
         //initialize tf2 broadcastors
-        tf2_ros::TransformBroadcaster marker_br;    //broadcast the marker to marker to marker basis transform
-        tf2_ros::TransformBroadcaster drone_cam_br; //broadcast the drone camera to marker transform
+        static tf2_ros::TransformBroadcaster marker_br;    //broadcast the marker to marker to marker basis transform
+        static tf2_ros::TransformBroadcaster drone_cam_br; //broadcast the drone camera to marker transform
 
         //ROS_INFO("QRCodeIdentifierBuffer:%s",QRCodeIdentifierBuffer);
         std::vector<std::string> coordinate_str_vec;
         boost::split(coordinate_str_vec,QRCodeIdentifierBuffer,boost::is_any_of(","));
+
+        std::vector<std::string>::iterator iter;
+        for(iter = coordinate_str_vec.begin();iter != coordinate_str_vec.end();++iter){
+            ROS_INFO_STREAM(*iter);
+        }
 
         if(coordinate_str_vec.size() != 2){
             ROS_INFO("coordinate in the qrcode is not 2 ,but %d, omitting...", coordinate_str_vec.size());
@@ -161,8 +167,7 @@ int main(int argc, char **argv)
     marker_basis_transform_stamped.transform.translation.y = 0;
     marker_basis_transform_stamped.transform.translation.z = 3.0;
     tf2::Quaternion q;
-    q.setRPY(0,0,0);
-    marker_basis_transform_stamped.transform.rotation.x = q.x();
+    q.setRPY(1.5707963,0,0);    marker_basis_transform_stamped.transform.rotation.x = q.x();
     marker_basis_transform_stamped.transform.rotation.y = q.y();
     marker_basis_transform_stamped.transform.rotation.z = q.z();
     marker_basis_transform_stamped.transform.rotation.w = q.w();
