@@ -3,7 +3,7 @@ import qrencode
 import os
 
 # parameters
-paper = "A0"    # set the paper type to A0,A1,A2,A3,A4
+paper = "POSTER"    # set the paper type to A0,A1,A2,A3,A4,POSTER
 lines = 3   # total lines of qrcodes
 rows = 4    # total rows of qrcodes
 margin = 50     # margin value in pixels
@@ -14,7 +14,8 @@ paper_size = {"A0":[841,1189],
               "A1":[594,841],
               "A2":[420,594],
               "A3":[297,420],
-              "A4":[210,297]}
+              "A4":[210,297],
+              "POSTER":[900,1200]}
 
 width = lines * qrsize + (lines + 1) * margin   # total width of the generated image
 height = rows * qrsize + (rows + 1) * margin    # total height of the generated image
