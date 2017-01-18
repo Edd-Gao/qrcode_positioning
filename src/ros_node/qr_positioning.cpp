@@ -1,7 +1,6 @@
 #include <iostream>
 #include "../library/QRCodeStateEstimator.hpp"
 #include <ros/ros.h>
-#include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
 #include <camera_calibration_parsers/parse.h>
 #include <sensor_msgs/CameraInfo.h>
@@ -21,9 +20,6 @@ std::unique_ptr<QRCodeStateEstimator> stateEstimator;
 
 void imageCallback(const sensor_msgs::ImageConstPtr &msg)
 {
-    //convert the new frame to cv format
-    cv_bridge::CvImagePtr cv_ptr;
-    cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
 
     //Initialize some variables we are going to use while processing frames
     cv::Mat cameraPoseBuffer;
@@ -31,7 +27,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msg)
     double QRCodeDimensionBuffer;
     bool thereIsANewFrame = false;
 
-    thereIsANewFrame = stateEstimator->estimateStateFromBGRFrame(cv_ptr->image, cameraPoseBuffer, QRCodeIdentifierBuffer, QRCodeDimensionBuffer);
+    thereIsANewFrame = stateEstimator->estimateStateFromGrayscaleImageMsg(msg, cameraPoseBuffer, QRCodeIdentifierBuffer, QRCodeDimensionBuffer);
     //Print out values of camera's pose matrix
     if(thereIsANewFrame){
         ROS_INFO("new qrcode");
@@ -44,9 +40,6 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msg)
         boost::split(coordinate_str_vec,QRCodeIdentifierBuffer,boost::is_any_of(","));
 
         std::vector<std::string>::iterator iter;
-        for(iter = coordinate_str_vec.begin();iter != coordinate_str_vec.end();++iter){
-            ROS_INFO_STREAM(*iter);
-        }
 
         if(coordinate_str_vec.size() != 2){
             ROS_INFO("coordinate in the qrcode is not 2 ,but %d, omitting...", coordinate_str_vec.size());
@@ -152,7 +145,7 @@ int main(int argc, char **argv)
     distortionParameters.at<double>(0, 4) = cam_info.D[4];
 
     //Initialize the state estimator, while wrapping any exceptions so we know where it came from
-    stateEstimator.reset(new QRCodeStateEstimator(cam_info.width, cam_info.height, cameraMatrix,distortionParameters,true));
+    stateEstimator.reset(new QRCodeStateEstimator(cam_info.width, cam_info.height, cameraMatrix,distortionParameters,false));
 
     //initialize tf2 broadcasters
     tf2_ros::StaticTransformBroadcaster marker_basis_br;    //broadcast the marker basis to world transform

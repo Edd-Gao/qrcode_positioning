@@ -9,6 +9,7 @@
 #include "SOMScopeGuard.hpp"
 #include <opencv2/opencv.hpp>
 #include <zbar.h>
+#include <sensor_msgs/Image.h>
 
 //Declare handy constants
 static const std::string QRCodeStateEstimatorWindowTitle = "QR Code State Estimator";
@@ -50,6 +51,19 @@ This function takes a grayscale frame of the appropriate size, scans for a QR co
 @param inputGrayscaleFrame: The frame to process (should be same size as calibration)
 @param inputCameraPoseBuffer: The buffer to place the 4x4 camera pose matrix in
 @param inputQRCodeIdentifierBuffer: A buffer to place left text from the QR code after the dimension information has been removed
+@param inputQRCodeDimensionBuffer: A buffer to place size of the QR code in meters
+@return: true if it was able to scan a QR code and estimate its pose relative to it and false otherwise
+
+@exceptions: This function can throw exceptions
+*/
+bool estimateStateFromGrayscaleImageMsg(const sensor_msgs::ImageConstPtr msg, cv::Mat &inputCameraPoseBuffer, std::string &inputQRCodeIdentifierBuffer, double &inputQRCodeDimensionBuffer);
+
+
+/*
+This function takes a grayscale frame of the appropriate size, scans for a QR code with an embedded size (recognized decimal formats: ft, in, cm, mm, m), and stores the pose of the camera (OpenCV format) relative to the coordinate system of the QR tag in the provided buffer.  If multiple tags are recognized, it will only return the information for the first.
+@param inputGrayscaleFrame: The frame to process (should be same size as calibration)
+@param inputCameraPoseBuffer: The buffer to place the 4x4 camera pose matrix in
+@param inputQRCodeIdentifierBuffer: A buffer to place left text from the QR code after the dimension information has been removed
 @param inputQRCodeDimensionBuffer: A buffer to place size of the QR code in meters 
 @return: true if it was able to scan a QR code and estimate its pose relative to it and false otherwise
 
@@ -81,6 +95,17 @@ This function takes a grayscale frame of the appropriate size, scans for any QR 
 */
 bool estimateOneOrMoreStatesFromGrayscaleFrame(const cv::Mat &inputGrayscaleFrame, std::vector<cv::Mat> &inputCameraPosesBuffer, std::vector<std::string> &inputQRCodeIdentifiersBuffer, std::vector<double> &inputQRCodeDimensionsBuffer);
 
+/*
+This function takes a grayscale frame of the appropriate size, scans for any QR codes with an embedded sizes (recognized decimal formats: ft, in, cm, mm, m), and stores the poses of the camera (OpenCV format) relative to the different coordinate systems of the QR tags in the provided buffers.
+@param inputGrayscaleFrame: The frame to process (should be same size as calibration)
+@param inputCameraPosesBuffer: The buffer to place the 4x4 camera pose matrices in
+@param inputQRCodeIdentifiersBuffer: A buffer to place the text left from each QR code after the dimension information has been removed
+@param inputQRCodeDimensionsBuffer: A buffer to place size of each QR code in meters
+@return: true if it was able to scan a QR code and estimate its pose relative to it and false otherwise
+
+@exceptions: This function can throw exceptions
+*/
+bool estimateOneOrMoreStatesFromGrayscaleImageMsg(const sensor_msgs::ImageConstPtr msg, std::vector<cv::Mat> &inputCameraPosesBuffer, std::vector<std::string> &inputQRCodeIdentifiersBuffer, std::vector<double> &inputQRCodeDimensionsBuffer);
 
 
 int expectedCameraImageWidth;
