@@ -27,10 +27,11 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msg)
     double QRCodeDimensionBuffer;
     bool thereIsANewFrame = false;
 
+    ros::Time timeStamp = ros::Time::now();
+
     thereIsANewFrame = stateEstimator->estimateStateFromGrayscaleImageMsg(msg, cameraPoseBuffer, QRCodeIdentifierBuffer, QRCodeDimensionBuffer);
     //Print out values of camera's pose matrix
     if(thereIsANewFrame){
-        ROS_INFO("new qrcode");
         //initialize tf2 broadcastors
         static tf2_ros::TransformBroadcaster marker_br;    //broadcast the marker to marker to marker basis transform
         static tf2_ros::TransformBroadcaster drone_cam_br; //broadcast the drone camera to marker transform
@@ -45,7 +46,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msg)
             ROS_INFO("coordinate in the qrcode is not 2 ,but %d, omitting...", coordinate_str_vec.size());
         }else{
             geometry_msgs::TransformStamped marker_transform_stamped;
-            marker_transform_stamped.header.stamp = ros::Time::now();
+            marker_transform_stamped.header.stamp = timeStamp;
             marker_transform_stamped.header.frame_id = "marker_basis";
             marker_transform_stamped.child_frame_id = "marker";
 
@@ -60,7 +61,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msg)
             marker_br.sendTransform(marker_transform_stamped);
 
             geometry_msgs::TransformStamped drone_base_transform_stamped;
-            drone_base_transform_stamped.header.stamp = ros::Time::now();
+            drone_base_transform_stamped.header.stamp = timeStamp;
             drone_base_transform_stamped.header.frame_id = "marker";
             drone_base_transform_stamped.child_frame_id = "drone_base";
 
@@ -104,10 +105,14 @@ int main(int argc, char **argv)
     cmd.parse(argc,argv);
     std::string filePath = pathArg.getValue();
 
-    if(filePath.size() > 0){
-        ROS_DEBUG("calibration file path:%s",filePath.c_str());
+    if(filePath.size() > 4
+       && (filePath.substr(filePath.size() -4, 4) == ".ini"
+                 || filePath.substr(filePath.size() -4, 4) == ".yml"
+                 || filePath.substr(filePath.size() - 5, 5) == ".yaml"))
+    {
+        ROS_INFO("read calibration file: %s",filePath.c_str());
     }else{
-        ROS_ERROR("empty calibration file path");
+        ROS_ERROR("Not a valid calibration file, only support \".ini\", \".yml\", \".yaml\" file");
         exit(-2);
     }
 
@@ -118,7 +123,7 @@ int main(int argc, char **argv)
     success = camera_calibration_parsers::readCalibration(filePath, camera_name, cam_info);
 
     if(success){
-        ROS_DEBUG("calibration readed");
+        ROS_INFO("calibration read");
     }else{
         ROS_ERROR("read calibration file failed");
         exit(-3);
