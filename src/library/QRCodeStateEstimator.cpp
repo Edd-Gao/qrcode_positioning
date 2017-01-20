@@ -52,9 +52,12 @@ cameraMatrix = inputCameraCalibrationMatrix;
 distortionParameters = inputCameraDistortionParameters;
 showResultsInWindow = inputShowResultsInWindow;
 
-//Configure the QR code reader object
+//Configure the QR code` reader object
 zbarScanner.set_config(zbar::ZBAR_NONE , zbar::ZBAR_CFG_ENABLE, 0);
+zbarScanner.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_X_DENSITY, 1);
+zbarScanner.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_Y_DENSITY, 1);
 zbarScanner.set_config(zbar::ZBAR_QRCODE , zbar::ZBAR_CFG_ENABLE, 1);
+
 zbarScanner.enable_cache(false); //Set it so that it will show QR code result even if it was in the last frame
 
 //Create window to show results, if we are suppose to
