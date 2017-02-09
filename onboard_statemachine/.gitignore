@@ -1,0 +1,10 @@
+#idea files
+core/build
+.gradle
+.idea
+
+#vscode
+.vscode
+
+#temp files
+*~
