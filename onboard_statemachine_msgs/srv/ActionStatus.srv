@@ -1,0 +1,6 @@
+#Switch mode service for hover controller node
+
+string CurrentAction
+bool ActionFinished
+---
+bool success

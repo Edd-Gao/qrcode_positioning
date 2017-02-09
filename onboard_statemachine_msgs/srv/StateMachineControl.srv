@@ -1,0 +1,5 @@
+#support start, pause, resume, stop, restart operation of the state machine
+
+string Operation
+---
+bool success
