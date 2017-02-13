@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>state_machine</name>
+  <name>onboard_statemachine</name>
   <version>0.1.0</version>
   <description>The state_machine package</description>
 
@@ -43,10 +43,10 @@
   <build_depend>rosjava_build_tools</build_depend>
   <build_depend>mavros</build_depend>
   <build_depend>sensor_msgs</build_depend>
-  <build_depend>state_machine_msgs</build_depend>
+  <build_depend>onboard_statemachine_msgs</build_depend>
   <build_depend>hover_controller_msgs</build_depend>
   <run_depend>hover_controller_msgs</run_depend>
-  <run_depend>state_machine_msgs</run_depend>
+  <run_depend>onboard_statemachine_msgs</run_depend>
   <run_depend>mavros</run_depend>
   <run_depend>sensor_msgs</run_depend>
 

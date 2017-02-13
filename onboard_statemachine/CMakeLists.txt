@@ -3,7 +3,7 @@
 ##############################################################################
 
 cmake_minimum_required(VERSION 2.8.3)
-project(state_machine)
+project(onboard_statemachine)
 
 ##############################################################################
 # Catkin
@@ -13,7 +13,7 @@ find_package(catkin REQUIRED
     rosjava_build_tools
     mavros
     sensor_msgs
-    state_machine_msgs
+    onboard_statemachine_msgs
     hover_controller_msgs
 )
 
