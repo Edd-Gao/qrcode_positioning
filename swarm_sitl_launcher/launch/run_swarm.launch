@@ -1,7 +1,7 @@
 <launch>
     <arg name="sitl_num" default="10" />
     <arg name="rc_script" default="rcS_multiple_gazebo_iris" />
-    <arg name="gui" default="true" />
+    <arg name="gui" default="false" />
     <arg name="headless" default="false" />
 
 
