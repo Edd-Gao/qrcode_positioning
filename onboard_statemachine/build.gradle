@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Tim Junell
+ * Copyright (C) 2014 root
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -19,11 +19,11 @@ task wrapper(type: Wrapper) {
 }
 
 buildscript {
-  //apply from: "https://github.com/gaochangyu/rosjava_bootstrap/raw/indigo/buildscript.gradle"
-    apply from: "buildscript.gradle"
+  apply from: "https://github.com/rosjava/rosjava_bootstrap/raw/indigo/buildscript.gradle"
 }
 
 apply plugin: 'catkin'
+
 
 allprojects {
     /*
@@ -35,15 +35,15 @@ allprojects {
 }
 
 subprojects {
-    /*
+    /* 
      * The ros plugin configures a few things:
-     *
+     * 
      *  - local deployment repository : where it dumps the jars and packaged artifacts)
-     *  - local maven repositories    : where it finds your locally installed/built artifacts)
+     *  - local maven repositories    : where it finds your locally installed/built artifacts) 
      *  - external maven repositories : where it goes looking if it can't find dependencies locally
-     *
+     * 
      * To modify, or add repos to the default external maven repositories list, pull request against this code:
-     *
+     * 
      *   https://github.com/rosjava/rosjava_bootstrap/blob/indigo/gradle_plugins/src/main/groovy/org/ros/gradle_plugins/RosPlugin.groovy#L31
      */
     apply plugin: "ros-java"
@@ -51,7 +51,7 @@ subprojects {
      * Some IDE support if you use it.
      */
     /* apply plugin: "eclipse" */
-    apply plugin: "idea"
+    /* apply plugin: "idea"    */
 }
 
 /*

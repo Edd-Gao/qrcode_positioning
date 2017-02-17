@@ -1,0 +1,6 @@
+<launch>
+    <node name="onboard_statemachine" pkg="onboard_statemachine" type="core" args="com.state_machine.core.StateMachineNode" >
+        <param name="FlightScriptPath" value="/catkin_ws/src/onboard_statemachine/flight_script/test_auto_takeoff.json" />
+        <param name="PropertiesPath" value="/catkin_ws/src/onboard_statemachine/core/src/main/java/com/state_machine/core/providers/config.properties" />
+    </node>
+</launch>
