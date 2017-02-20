@@ -6,7 +6,7 @@
     <include file="$(find swarm_sitl_launcher)/launch/px4_sitl.launch" >    
     	<arg name="fcu_url" value="$(arg fcu_url)" />
     </include>
-    <include file="$(find state_machine)/launch/swarm.launch">
+    <include file="$(find onboard_statemachine)/launch/swarm.launch">
     	<arg name="FlightScriptPath" value="$(arg FlightScriptPath)" />
     </include>
     <!--include file="$(find hover_controller)/launch/local.launch" /-->

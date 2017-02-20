@@ -2,5 +2,5 @@
 <include ns="drone1" file="$(find px4)/launch/posix_sitl.launch" />
 <include ns="drone1" file="$(find swarm_sitl_launcher)/launch/px4_sitl.launch" />
 <include ns="drone1" file="$(find hover_controller)/launch/local.launch" />
-<include ns="drone1" file="$(find state_machine)/launch/local.launch" />
+<include ns="drone1" file="$(find onboard_statemachine)/launch/local.launch" />
 </launch>

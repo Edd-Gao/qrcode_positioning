@@ -1,7 +1,7 @@
 <launch>
     <arg name="FlightScriptPath" default="$(arg FlightScriptPath)" />
-    <node name="state_machine" pkg="state_machine" type="core" args="com.state_machine.core.StateMachineNode" >
+    <node name="state_machine" pkg="onboard_statemachine" type="core" args="com.state_machine.core.StateMachineNode" >
         <param name="FlightScriptPath" value="$(arg FlightScriptPath)" />
-        <param name="PropertiesPath" value="/home/$(env USER)/catkin_ws/src/onboard_statemachine/core/src/main/java/com/state_machine/core/providers/config.properties" />
+        <param name="PropertiesPath" value="$(find onboard_statemachine)/core/src/main/java/com/state_machine/core/providers/config.properties" />
     </node>
 </launch>
