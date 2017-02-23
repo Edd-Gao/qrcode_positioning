@@ -40,7 +40,7 @@ while [ $n -le $sitl_num ]; do
 
  cd $n
  
-${src_path}/build_posix_sitl_default/src/firmware/posix/px4 -d rcS & #>out.log 2>err.log
+${src_path}/build_posix_sitl_default/src/firmware/posix/px4 ${src_path} rcS & >out.log 2>err.log
 
  cd ..
 
