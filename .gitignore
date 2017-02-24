@@ -167,9 +167,6 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
-#vscode files
-.vscode
-
 #cmake build files
 cmake-build-debug
 

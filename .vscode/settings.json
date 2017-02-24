@@ -1,0 +1,32 @@
+{
+    "deploy": {
+        "packages": [
+            {
+            "files": [
+                    "launch/*",
+                    "src/**",
+                    "Tools/**",
+                    "CMakeLists.txt",
+                    "package.xml",
+                    "calibrations/**"
+                ],
+                "exclude": [
+                    ".vscode/**"
+                ],
+                "deployOnSave": true
+            }
+        ],
+        "targets": [
+            {
+                "type": "sftp",
+                "name": "raspberry pi",
+                "description": "deploy to raspberry pi working dir",
+
+                "dir": "/home/can/catkin_ws/src/qrcode_positioning",
+                "host": "can-rpi", "port": 22,
+                "user": "can",
+                "privateKey": "/home/edward/.ssh/id_rsa"
+            }
+        ]
+    }
+}
