@@ -176,5 +176,4 @@ int main(int argc, char **argv)
     //ros::spin();
     ros::MultiThreadedSpinner spinner(4);
     spinner.spin();
-
 }
