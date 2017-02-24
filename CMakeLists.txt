@@ -156,6 +156,11 @@ else ()
             ${catkin_LIBRARIES}
             )
 
+    add_executable(test_bar_code src/unit_test/test_bar_code.cpp)
+    target_link_libraries(test_bar_code
+            ${catkin_LIBRARIES}
+            )
+
     add_executable(test_TCLAP src/unit_test/test-TCLAP.cpp)
     target_link_libraries(test_TCLAP
             ${catkin_LIBRARIES}
