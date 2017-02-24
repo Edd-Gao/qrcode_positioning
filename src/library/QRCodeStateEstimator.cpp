@@ -359,13 +359,11 @@ bool QRCodeStateEstimator::estimateOneOrMoreStatesFromGrayscaleImageMsg(const se
     SOMScopeGuard zbarFrameGuard([&](){zbarFrame.set_data(NULL, 0);});
 
 //Scan for QR codes
-    ros::Time timestamp = ros::Time::now();
     if(zbarScanner.scan(zbarFrame) == -1)
     {
         printf("TestScanner error\n");
         throw SOMException(std::string("QR code scanner returned with error\n"), ZBAR_ERROR, __FILE__, __LINE__);
     }
-    ROS_INFO("scan consumes:%d",(ros::Time::now() - timestamp).nsec/1000000);
 
 //Clear the buffers to store everything in
     inputCameraPosesBuffer.clear();
@@ -411,9 +409,7 @@ bool QRCodeStateEstimator::estimateOneOrMoreStatesFromGrayscaleImageMsg(const se
 
 
 //Use solvePnP to get the rotation and translation vector of the QR code relative to the camera
-        timestamp = ros::Time::now();
         cv::solvePnP(objectVerticesInObjectCoordinates, openCVPoints, cameraMatrix, distortionParameters, rotationVector, translationVector);
-        ROS_INFO("pnp consumes:%d",(ros::Time::now() - timestamp).nsec/1000000);
 
         cv::Mat_<double> rotationMatrix, viewMatrix(4, 4);
 
