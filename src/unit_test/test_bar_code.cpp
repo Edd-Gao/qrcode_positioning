@@ -1,5 +1,4 @@
 #include <iostream>
-#include "../library/QRCodeStateEstimator.hpp"
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/CameraInfo.h>
@@ -7,8 +6,10 @@
 #include <string>
 #include <memory>
 #include <zbar.h>
+#include <opencv2/opencv.hpp>
 
-std::unique_ptr<QRCodeStateEstimator> stateEstimator;
+
+zbar::ImageScanner zbarScanner;
 
 void imageCallback(const sensor_msgs::ImageConstPtr &msg)
 {
@@ -30,21 +31,29 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msg)
     {
         printf("TestScanner error\n");
     }
+    ROS_ERROR_STREAM("scan consumes:"<< ((ros::Time::now() - timeStamp).toNSec())/1000000);
+    //ROS_ERROR("scan consumes: %ld", ((ros::Time::now() - timeStamp).toNSec())/1000000);
 
-    ROS_ERROR("scan consumes: %d", (ros::Time::now() - timeStamp).toNSec()/1000000);
-    
     for (zbar::Image::SymbolIterator symbol = zbarFrame.symbol_begin();  symbol != zbarFrame.symbol_end();  ++symbol) 
     {
-        ROS_ERROR("symbol:%s", symbol->get_data());
+        ROS_ERROR("symbol:%s", symbol->get_data().c_str());
     }
-
-
+    //ROS_ERROR_STREAM("decode consumes:"<< ((ros::Time::now() - timeStamp).toNSec())/1000000);
+    //ROS_ERROR("decode consumes: %ld", (ros::Time::now() - timeStamp).toNSec()/1000000);
 
 
 }
 
 int main(int argc, char **argv)
 {
+    zbarScanner.set_config(zbar::ZBAR_NONE , zbar::ZBAR_CFG_ENABLE, 0);
+    zbarScanner.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_X_DENSITY, 1);
+    zbarScanner.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_Y_DENSITY, 1);
+    zbarScanner.set_config(zbar::ZBAR_CODE39 , zbar::ZBAR_CFG_ENABLE, 1);
+    zbarScanner.set_config(zbar::ZBAR_QRCODE , zbar::ZBAR_CFG_ENABLE, 1);
+    zbarScanner.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_NUM, 1);
+
+    zbarScanner.enable_cache(false); //Set it so that it will show QR code result even if it was in the last frame
     ros::init(argc,argv,"qrcode_positioning");
     ros::NodeHandle nh;
     image_transport::ImageTransport it(nh);

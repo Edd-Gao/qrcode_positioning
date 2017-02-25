@@ -7,6 +7,10 @@
         <remap from="/camera/image" to="/camera/image_raw" />
     </node>
 
-    <node pkg="qrcode_positioning" type="test_bar_code" >
+    <node name="positioning" pkg="qrcode_positioning" type="test_bar_code" >
     </node>
+
+    <node name="view" pkg="image_view" type="image_view" args=" image:=/camera/image_raw raw" >
+    </node>
+
 </launch>
