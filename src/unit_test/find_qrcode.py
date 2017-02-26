@@ -1,0 +1,307 @@
+# coding=utf-8
+from Queue import Queue
+
+import cv2
+import numpy as np
+import math
+
+import time
+
+
+def createLineIterator(P1, P2, img):
+    """
+    Produces and array that consists of the coordinates and intensities of each pixel in a line between two points
+
+    Parameters:
+        -P1: a numpy array that consists of the coordinate of the first point (x,y)
+        -P2: a numpy array that consists of the coordinate of the second point (x,y)
+        -img: the image being processed
+
+    Returns:
+        -it: a numpy array that consists of the coordinates and intensities of each pixel in the radii (shape: [numPixels, 3], row = [x,y,intensity])
+    """
+    # define local variables for readability
+    imageH = img.shape[0]
+    imageW = img.shape[1]
+    P1X = P1[0]
+    P1Y = P1[1]
+    P2X = P2[0]
+    P2Y = P2[1]
+
+    # difference and absolute difference between points
+    # used to calculate slope and relative location between points
+    dX = P2X - P1X
+    dY = P2Y - P1Y
+    dXa = np.abs(dX)
+    dYa = np.abs(dY)
+
+    # predefine numpy array for output based on distance between points
+    itbuffer = np.empty(shape=(np.maximum(dYa, dXa), 3), dtype=np.float32)
+    itbuffer.fill(np.nan)
+
+    # Obtain coordinates along the line using a form of Bresenham's algorithm
+    negY = P1Y > P2Y
+    negX = P1X > P2X
+    if P1X == P2X:  # vertical line segment
+        itbuffer[:, 0] = P1X
+        if negY:
+            itbuffer[:, 1] = np.arange(P1Y - 1, P1Y - dYa - 1, -1)
+        else:
+            itbuffer[:, 1] = np.arange(P1Y + 1, P1Y + dYa + 1)
+    elif P1Y == P2Y:  # horizontal line segment
+        itbuffer[:, 1] = P1Y
+        if negX:
+            itbuffer[:, 0] = np.arange(P1X - 1, P1X - dXa - 1, -1)
+        else:
+            itbuffer[:, 0] = np.arange(P1X + 1, P1X + dXa + 1)
+    else:  # diagonal line segment
+        steepSlope = dYa > dXa
+        if steepSlope:
+            slope = dX.astype(np.float32) / dY.astype(np.float32)
+            if negY:
+                itbuffer[:, 1] = np.arange(P1Y - 1, P1Y - dYa - 1, -1)
+            else:
+                itbuffer[:, 1] = np.arange(P1Y + 1, P1Y + dYa + 1)
+            itbuffer[:, 0] = (slope * (itbuffer[:, 1] - P1Y)).astype(np.int) + P1X
+        else:
+            slope = dY.astype(np.float32) / dX.astype(np.float32)
+            if negX:
+                itbuffer[:, 0] = np.arange(P1X - 1, P1X - dXa - 1, -1)
+            else:
+                itbuffer[:, 0] = np.arange(P1X + 1, P1X + dXa + 1)
+            itbuffer[:, 1] = (slope * (itbuffer[:, 0] - P1X)).astype(np.int) + P1Y
+
+    # Remove points outside of image
+    colX = itbuffer[:, 0]
+    colY = itbuffer[:, 1]
+    itbuffer = itbuffer[(colX >= 0) & (colY >= 0) & (colX < imageW) & (colY < imageH)]
+
+    # Get intensities from img ndarray
+    itbuffer[:, 2] = img[itbuffer[:, 1].astype(np.uint), itbuffer[:, 0].astype(np.uint)]
+
+    return itbuffer
+
+
+def cv_distance(p, q):
+    return int(math.sqrt(pow((p[0] - q[0]), 2) + pow((p[1] - q[1]), 2)))
+
+
+def draw_short_connections(a, b):
+    # 存储 ab 数组里最短的两点的组合
+    s1_ab = ()
+    s2_ab = ()
+    # 存储 ab 数组里最短的两点的距离，用于比较
+    s1 = np.iinfo('i').max
+    s2 = s1
+    for ai in a:
+        for bi in b:
+            d = cv_distance(ai, bi)
+            if d < s2:
+                if d < s1:
+                    s1_ab, s2_ab = (ai, bi), s1_ab
+                    s1, s2 = d, s1
+                else:
+                    s2_ab = (ai, bi)
+                    s2 = d
+    a1, a2 = s1_ab[0], s2_ab[0]
+    b1, b2 = s1_ab[1], s2_ab[1]
+    a1 = (a1[0] + (a2[0] - a1[0]) * 1 / 14, a1[1] + (a2[1] - a1[1]) * 1 / 14)
+    b1 = (b1[0] + (b2[0] - b1[0]) * 1 / 14, b1[1] + (b2[1] - b1[1]) * 1 / 14)
+    a2 = (a2[0] + (a1[0] - a2[0]) * 1 / 14, a2[1] + (a1[1] - a2[1]) * 1 / 14)
+    b2 = (b2[0] + (b1[0] - b2[0]) * 1 / 14, b2[1] + (b1[1] - b2[1]) * 1 / 14)
+
+    # 将最短的两个线画出来
+    cv2.line(draw_img, a1, b1, (0, 0, 255), 1)
+    cv2.line(draw_img, a2, b2, (0, 0, 255), 1)
+
+
+def check(a, b, binary_img):
+    # 存储 ab 数组里最短的两点的组合
+    s1_ab = ()
+    s2_ab = ()
+    # 存储 ab 数组里最短的两点的距离，用于比较
+    s1 = np.iinfo('i').max
+    s2 = s1
+    for ai in a:
+        for bi in b:
+            d = cv_distance(ai, bi)
+            if d < s2:
+                if d < s1:
+                    s1_ab, s2_ab = (ai, bi), s1_ab
+                    s1, s2 = d, s1
+                else:
+                    s2_ab = (ai, bi)
+                    s2 = d
+    a1, a2 = s1_ab[0], s2_ab[0]
+    b1, b2 = s1_ab[1], s2_ab[1]
+    a1 = (a1[0] + (a2[0] - a1[0]) * 1 / 14, a1[1] + (a2[1] - a1[1]) * 1 / 14)
+    b1 = (b1[0] + (b2[0] - b1[0]) * 1 / 14, b1[1] + (b2[1] - b1[1]) * 1 / 14)
+    a2 = (a2[0] + (a1[0] - a2[0]) * 1 / 14, a2[1] + (a1[1] - a2[1]) * 1 / 14)
+    b2 = (b2[0] + (b1[0] - b2[0]) * 1 / 14, b2[1] + (b1[1] - b2[1]) * 1 / 14)
+
+    return is_timing_pattern(createLineIterator(a1, b1, binary_img)[:, 2]) or is_timing_pattern(createLineIterator(a2, b2, binary_img)[:, 2])
+
+
+def is_timing_pattern(line):
+    # 除去开头结尾的白色像素点
+    while line[0] != 0:
+        line = line[1:]
+    while line[-1] != 0:
+        line = line[:-1]
+    # 计数连续的黑白像素点
+    c = []
+    count = 1
+    l = line[0]
+    for p in line[1:]:
+        if p == l:
+            count += 1
+        else:
+            #排除一些太小的线段，这些可能是噪声
+            if count > 2:
+                c.append(count)
+            count = 1
+        l = p
+    if count > 2:
+        c.append(count)
+    # 如果黑白间隔太少，直接排除
+    if len(c) < 5:
+        return False
+    # 计算方差，根据离散程度判断是否是 Timing Pattern
+    threshold = 5
+    return np.var(c) < threshold
+
+
+def find_contour_corner(contour):
+    i = 0
+    #temp_result = np.array([[0,0]])
+    corners = np.array([[0, 0]])
+    temp_result = Queue()
+    while i < len(contour) - 1:
+        if contour[i].item(0) == contour[i+1].item(0):
+            #temp_result = np.append(temp_result, contour[i:i+1], axis=0)
+            temp_result.put(contour[i], False)
+            temp_result.put(contour[i+1], False)
+            i += 2
+        else:
+            i += 1
+
+    temp_result.put(temp_result.get())
+
+    threshold = 10
+    while not temp_result.empty():
+        temp_a = temp_result.get()
+        temp_b = temp_result.get()
+        if cv_distance(temp_a[0], temp_b[0]) > threshold:
+            corners = np.append(corners, temp_a, axis=0)
+            corners = np.append(corners, temp_b, axis=0)
+
+    if corners.size == 10:
+        return corners[1:]
+    else:
+        rect = cv2.minAreaRect(contour)
+        box = cv2.boxPoints(rect)
+        box = np.int(box)
+        return box
+
+
+
+start = time.clock()
+
+img = cv2.imread("/home/edward/workspace/qrcode_positioning/resources/640/1.jpg")
+# cv2.imshow("test", img)
+# cv2.waitKey()
+
+img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+img_gb = cv2.GaussianBlur(img_gray, (3, 3), 2)
+
+edges = cv2.Canny(img_gray, 30, 200, 3)
+
+# 使用形态学闭合操作有效弥合一些边缘图中二位码定位点的缺口
+kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+closing = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
+
+cv2.imshow("edges", edges)
+cv2.waitKey()
+
+cv2.imshow("closing", closing)
+cv2.waitKey()
+
+img_fc, contours, hierarchy = cv2.findContours(closing, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+
+hierarchy = hierarchy[0]
+found = []
+for i in range(len(contours)):
+    k = i
+    c = 0
+    while hierarchy[k][2] != -1:
+        k = hierarchy[k][2]
+        c += 1
+    if c >= 5:
+        found.append(i)
+for i in found:
+    img_dc = img.copy()
+    cv2.drawContours(img_dc, contours, i, (0, 255, 0), 1)
+    cv2.imshow("contour", img_dc)
+    cv2.waitKey()
+
+draw_img = img.copy()
+for i in found:
+    box = find_contour_corner(contours[i])
+    cv2.drawContours(draw_img, [box], 0, (0, 0, 255), 2)
+cv2.imshow("draw_img", draw_img)
+cv2.waitKey()
+
+boxes = []
+for i in found:
+    box = find_contour_corner(contours[i])
+    box = map(tuple, box)
+    boxes.append(box)
+
+for i in range(len(boxes)):
+    for j in range(i + 1, len(boxes)):
+        draw_short_connections(boxes[i], boxes[j])
+cv2.imshow("shortest", draw_img)
+cv2.waitKey()
+
+# 二值化时阈值要选的合适，否则造成判断timing pattern的困难
+th, bi_img = cv2.threshold(img_gray, 75, 255, cv2.THRESH_BINARY)
+cv2.imshow("bi", bi_img)
+cv2.waitKey()
+
+valid = set()
+for i in range(len(boxes)):
+    for j in range(i + 1, len(boxes)):
+        if check(boxes[i], boxes[j], bi_img):
+            valid.add(i)
+            valid.add(j)
+print valid
+
+find_contour_corner(contours[found[0]])
+
+contour_all = np.array([])
+if len(valid) > 0:
+    contour_all = contours[found[valid.pop()]]
+else:
+    print "no qr code found"
+    exit(-1)
+
+while len(valid) > 0:
+    c = found[valid.pop()]
+    contour_all = np.append(contour_all, contours[c], axis=0)
+
+rect = cv2.minAreaRect(contour_all)
+box = cv2.boxPoints(rect)
+box = np.array(box)
+draw_img = img.copy()
+cv2.polylines(draw_img, np.int32([box]), True, (0, 0, 255), 1)
+qr_img = img.copy()
+qr_img = qr_img[ int(min(box[:, 1])): int(max(box[:, 1])), int(min(box[:, 0])): int(max(box[:, 0]))]
+cv2.imshow("Area", draw_img)
+cv2.waitKey()
+cv2.imshow("result", qr_img)
+cv2.waitKey()
+
+end = time.clock()
+print str((end - start)*1000) + "ms"
