@@ -83,10 +83,22 @@ def createLineIterator(P1, P2, img):
 
 
 def cv_distance(p, q):
+    """
+    calculate the distance between two opencv points
+    :param p: one 2-dimension numpy array
+    :param q: another 2-dimension numpy array
+    :return: return the distance between two points
+    """
     return int(math.sqrt(pow((p[0] - q[0]), 2) + pow((p[1] - q[1]), 2)))
 
 
 def draw_short_connections(a, b):
+    """
+    draw the two shortest connection lines between two Position Detection Pattern box corners
+    :param a: Position Detection Pattern box corner array a
+    :param b: Position Detection Pattern box corner array b
+    :return: no return
+    """
     # 存储 ab 数组里最短的两点的组合
     s1_ab = ()
     s2_ab = ()
@@ -116,6 +128,13 @@ def draw_short_connections(a, b):
 
 
 def check(a, b, binary_img):
+    """
+    check whether the two input Position Detection Pattern box a and b are in one qr code
+    :param a: Position Detection Pattern box corner array a
+    :param b: Position Detection Pattern box corner array b
+    :param binary_img: the binary image containing the qrcode
+    :return: boolean judgement, true if the two Position Detection Patterns are in one qr code
+    """
     # 存储 ab 数组里最短的两点的组合
     s1_ab = ()
     s2_ab = ()
@@ -143,6 +162,11 @@ def check(a, b, binary_img):
 
 
 def is_timing_pattern(line):
+    """
+    to judge wether the input line is a timing pattern
+    :param line: input line
+    :return: true if the line is a timing pattern
+    """
     # 除去开头结尾的白色像素点
     while line[0] != 0:
         line = line[1:]
@@ -156,7 +180,7 @@ def is_timing_pattern(line):
         if p == l:
             count += 1
         else:
-            #排除一些太小的线段，这些可能是噪声
+            # 排除一些太小的线段，这些可能是噪声
             if count > 2:
                 c.append(count)
             count = 1
@@ -172,15 +196,20 @@ def is_timing_pattern(line):
 
 
 def find_contour_corner(contour):
+    """
+    find the Position Detection Pattern contour corners
+    :param contour: the contour end points in a ndarray
+    :return: if the algorithm succeed, it returns the corners of the contour in a ndarray, or it returns the corners of the minimum area rectangle containing the pattern
+    """
     i = 0
-    #temp_result = np.array([[0,0]])
+    # temp_result = np.array([[0,0]])
     corners = np.array([[0, 0]])
     temp_result = Queue()
     while i < len(contour) - 1:
-        if contour[i].item(0) == contour[i+1].item(0):
-            #temp_result = np.append(temp_result, contour[i:i+1], axis=0)
+        if contour[i].item(0) == contour[i + 1].item(0):
+            # temp_result = np.append(temp_result, contour[i:i+1], axis=0)
             temp_result.put(contour[i], False)
-            temp_result.put(contour[i+1], False)
+            temp_result.put(contour[i + 1], False)
             i += 2
         else:
             i += 1
@@ -204,11 +233,10 @@ def find_contour_corner(contour):
         return box
 
 
-
 start = time.clock()
 
-img = cv2.imread("/home/edward/workspace/qrcode_positioning/resources/640/1.jpg")
-# cv2.imshow("test", img)
+img = cv2.imread("/home/edward/workspace/qrcode_positioning/resources/640/5.jpg")
+# #cv2.imshow("test", img)
 # cv2.waitKey()
 
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -221,14 +249,13 @@ edges = cv2.Canny(img_gray, 30, 200, 3)
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
 closing = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
 
-cv2.imshow("edges", edges)
+# cv2.imshow("edges", edges)
 cv2.waitKey()
 
-cv2.imshow("closing", closing)
+# cv2.imshow("closing", closing)
 cv2.waitKey()
 
 img_fc, contours, hierarchy = cv2.findContours(closing, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
 
 hierarchy = hierarchy[0]
 found = []
@@ -243,14 +270,14 @@ for i in range(len(contours)):
 for i in found:
     img_dc = img.copy()
     cv2.drawContours(img_dc, contours, i, (0, 255, 0), 1)
-    cv2.imshow("contour", img_dc)
+    # cv2.imshow("contour", img_dc)
     cv2.waitKey()
 
 draw_img = img.copy()
 for i in found:
     box = find_contour_corner(contours[i])
     cv2.drawContours(draw_img, [box], 0, (0, 0, 255), 2)
-cv2.imshow("draw_img", draw_img)
+# cv2.imshow("draw_img", draw_img)
 cv2.waitKey()
 
 boxes = []
@@ -267,7 +294,7 @@ cv2.waitKey()
 
 # 二值化时阈值要选的合适，否则造成判断timing pattern的困难
 th, bi_img = cv2.threshold(img_gray, 75, 255, cv2.THRESH_BINARY)
-cv2.imshow("bi", bi_img)
+# cv2.imshow("bi", bi_img)
 cv2.waitKey()
 
 valid = set()
@@ -291,17 +318,19 @@ while len(valid) > 0:
     c = found[valid.pop()]
     contour_all = np.append(contour_all, contours[c], axis=0)
 
-rect = cv2.minAreaRect(contour_all)
-box = cv2.boxPoints(rect)
-box = np.array(box)
+rect_x, rect_y, rect_w, rect_h = cv2.boundingRect(contour_all)
+# box = cv2.boxPoints(rect)
+# box = np.array(box)
 draw_img = img.copy()
-cv2.polylines(draw_img, np.int32([box]), True, (0, 0, 255), 1)
-qr_img = img.copy()
-qr_img = qr_img[ int(min(box[:, 1])): int(max(box[:, 1])), int(min(box[:, 0])): int(max(box[:, 0]))]
+# cv2.rectangle(draw_img,rect)
+cv2.rectangle(draw_img, (rect_x, rect_y), (rect_x + rect_w, rect_y + rect_h), (0, 0, 255), 1)
+# qr_img = qr_img[ int(min(box[:, 1])): int(max(box[:, 1])), int(min(box[:, 0])): int(max(box[:, 0]))]
+qr_img = img_gray.copy()
+qr_img = qr_img[rect_y:rect_y + rect_h, rect_x:rect_x + rect_w]
 cv2.imshow("Area", draw_img)
 cv2.waitKey()
 cv2.imshow("result", qr_img)
 cv2.waitKey()
 
 end = time.clock()
-print str((end - start)*1000) + "ms"
+print str((end - start) * 1000) + "ms"
