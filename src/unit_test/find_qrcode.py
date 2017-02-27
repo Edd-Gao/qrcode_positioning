@@ -235,9 +235,11 @@ def find_contour_corner(contour):
 
 start = time.clock()
 
-img = cv2.imread("/home/edward/workspace/qrcode_positioning/resources/640/5.jpg")
+img = cv2.imread("/home/edward/workspace/qrcode_positioning/resources/640/1.jpg")
 # #cv2.imshow("test", img)
 # cv2.waitKey()
+
+# pre-processings for the input images
 
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -255,10 +257,14 @@ cv2.waitKey()
 # cv2.imshow("closing", closing)
 cv2.waitKey()
 
+# find contours in the image
+
 img_fc, contours, hierarchy = cv2.findContours(closing, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
 hierarchy = hierarchy[0]
 found = []
+
+# find the qr code positioning patterns in the image
 for i in range(len(contours)):
     k = i
     c = 0
@@ -267,12 +273,15 @@ for i in range(len(contours)):
         c += 1
     if c >= 5:
         found.append(i)
+
+# draw the found qr code positioning pattern contours
 for i in found:
     img_dc = img.copy()
     cv2.drawContours(img_dc, contours, i, (0, 255, 0), 1)
     # cv2.imshow("contour", img_dc)
     cv2.waitKey()
 
+# find the contour corners and draw in the image
 draw_img = img.copy()
 for i in found:
     box = find_contour_corner(contours[i])
@@ -280,23 +289,26 @@ for i in found:
 # cv2.imshow("draw_img", draw_img)
 cv2.waitKey()
 
+# find the contour corners and store the corners in boxes
 boxes = []
 for i in found:
     box = find_contour_corner(contours[i])
     box = map(tuple, box)
     boxes.append(box)
 
+# draw the two shortest connections between every two boxes' corners
 for i in range(len(boxes)):
     for j in range(i + 1, len(boxes)):
         draw_short_connections(boxes[i], boxes[j])
 cv2.imshow("shortest", draw_img)
 cv2.waitKey()
 
-# 二值化时阈值要选的合适，否则造成判断timing pattern的困难
+# Choose appropriate threshold to get a pretty binary image for timing pattern judgement
 th, bi_img = cv2.threshold(img_gray, 75, 255, cv2.THRESH_BINARY)
 # cv2.imshow("bi", bi_img)
 cv2.waitKey()
 
+#find the valid qr code positioning patterns and store the id in the set valid
 valid = set()
 for i in range(len(boxes)):
     for j in range(i + 1, len(boxes)):
@@ -305,8 +317,7 @@ for i in range(len(boxes)):
             valid.add(j)
 print valid
 
-find_contour_corner(contours[found[0]])
-
+# put the valid contours of the qr code positioning patterns in contours_all
 contour_all = np.array([])
 if len(valid) > 0:
     contour_all = contours[found[valid.pop()]]
@@ -318,17 +329,18 @@ while len(valid) > 0:
     c = found[valid.pop()]
     contour_all = np.append(contour_all, contours[c], axis=0)
 
+# find the bounding rectangle of contour_all
 rect_x, rect_y, rect_w, rect_h = cv2.boundingRect(contour_all)
-# box = cv2.boxPoints(rect)
-# box = np.array(box)
+
+# mark out the qr code area in the image
 draw_img = img.copy()
-# cv2.rectangle(draw_img,rect)
 cv2.rectangle(draw_img, (rect_x, rect_y), (rect_x + rect_w, rect_y + rect_h), (0, 0, 255), 1)
-# qr_img = qr_img[ int(min(box[:, 1])): int(max(box[:, 1])), int(min(box[:, 0])): int(max(box[:, 0]))]
-qr_img = img_gray.copy()
-qr_img = qr_img[rect_y:rect_y + rect_h, rect_x:rect_x + rect_w]
 cv2.imshow("Area", draw_img)
 cv2.waitKey()
+
+# crop the qr code area
+qr_img = img_gray.copy()
+qr_img = qr_img[rect_y:rect_y + rect_h, rect_x:rect_x + rect_w]
 cv2.imshow("result", qr_img)
 cv2.waitKey()
 
