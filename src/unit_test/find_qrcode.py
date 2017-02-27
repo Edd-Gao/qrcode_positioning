@@ -172,10 +172,10 @@ def is_timing_pattern(line):
     :return: true if the line is a timing pattern
     """
     # 除去开头结尾的白色像素点
-    while line[0] != 0:
-        line = line[1:]
-    while line[-1] != 0:
-        line = line[:-1]
+    #while line[0] != 0:
+    #    line = line[1:]
+    #while line[-1] != 0:
+    #    line = line[:-1]
     # 计数连续的黑白像素点
     c = []
     count = 1
@@ -254,6 +254,7 @@ def scan(boxes, gray_img, zbar_scanner):
     qr_boxes_candidate = deque()
     success = False
     result_symbol = ""
+    candidate_i = deque()
 
     while True:
         current_state = next_state
@@ -262,7 +263,7 @@ def scan(boxes, gray_img, zbar_scanner):
             if len(boxes) < 3:
                 next_state = "FAIL"
                 continue
-            candidate_i = deque()
+            candidate_i.clear()
             candidate_i.append(0)
             for i in range(1, len(boxes)):
                 if check(boxes[0], boxes[i], bi_img):
@@ -275,24 +276,24 @@ def scan(boxes, gray_img, zbar_scanner):
             elif valid_count == 2:
                 qr_boxes_candidate.append(boxes[candidate_i[0]])
                 qr_boxes_candidate.append(boxes[candidate_i[1]])
-                np.delete(boxes, candidate_i)
+                boxes = np.delete(boxes, candidate_i,axis=0)
                 next_state = "ONE"
             elif valid_count == 3:
                 qr_boxes_candidate.append(boxes[candidate_i[0]])
                 qr_boxes_candidate.append(boxes[candidate_i[1]])
                 qr_boxes_candidate.append(boxes[candidate_i[2]])
-                np.delete(boxes, candidate_i)
+                boxes = np.delete(boxes, candidate_i,axis=0)
                 next_state = "TWO"
             else:
                 for x in candidate_i:
                     qr_boxes_candidate.append(boxes[x])
-                np.delete(boxes, candidate_i)
+                boxes = np.delete(boxes, candidate_i,axis=0)
                 next_state = "MORE"
         elif current_state == "ONE":
             if len(boxes) == 0:
                 next_state = "FAIL"
                 continue
-            candidate_i = deque()
+            candidate_i.clear()
             for i in range(0, len(boxes)):
                 if check(qr_boxes_candidate[1], boxes[i], bi_img):
                     candidate_i.append(i)
@@ -302,15 +303,24 @@ def scan(boxes, gray_img, zbar_scanner):
                 next_state = "ZERO"
             elif valid_count == 1:
                 qr_boxes_candidate.append(boxes[candidate_i[0]])
-                np.delete(boxes, candidate_i)
+                boxes = np.delete(boxes, candidate_i, axis=0)
                 next_state = "TWO"
             else:
                 for x in candidate_i:
                     qr_boxes_candidate.append(boxes[x])
-                np.delete(boxes, candidate_i)
+                boxes = np.delete(boxes, candidate_i,axis=0)
                 next_state = "MORE"
         elif current_state == "TWO":
-            x, y, w, h = cv2.boundingRect(qr_boxes_candidate)
+            x, y, w, h = cv2.boundingRect(np.array(qr_boxes_candidate).reshape((12, 2)))
+            x -= 30
+            y -= 30
+            w += 30
+            h += 30
+            if x <0:
+                x = 0
+            if y < 0:
+                y = 0
+
             qr_zone_img = gray_img[y:y + h, x:x + w]
             zbar_img = zbar.Image(w, h, 'Y800', qr_zone_img.tostring())
             zbar_scanner.scan(zbar_img)
@@ -322,6 +332,7 @@ def scan(boxes, gray_img, zbar_scanner):
             if(success):
                 break
             else:
+                qr_boxes_candidate.clear()
                 next_state = "ZERO"
         elif current_state == "MORE":
             pass
@@ -391,7 +402,7 @@ if __name__ == "__main__":
     for i in found:
         box = find_contour_corner(contours[i])
         cv2.drawContours(draw_img, [box], 0, (0, 0, 255), 2)
-    # cv2.imshow("draw_img", draw_img)
+    #cv2.imshow("draw_img", draw_img)
     cv2.waitKey()
 
     # find the contour corners and store the corners in boxes
@@ -401,53 +412,17 @@ if __name__ == "__main__":
         box = map(tuple, box)
         boxes.append(box)
 
-    # draw the two shortest connections between every two boxes' corners
-    for i in range(len(boxes)):
-        for j in range(i + 1, len(boxes)):
-            draw_short_connections(boxes[i], boxes[j])
-    cv2.imshow("shortest", draw_img)
-    cv2.waitKey()
+    scanner = zbar.ImageScanner()
 
-    # Choose appropriate threshold to get a pretty binary image for timing pattern judgement
-    th, bi_img = cv2.threshold(img_gray, 75, 255, cv2.THRESH_BINARY)
-    # cv2.imshow("bi", bi_img)
-    cv2.waitKey()
+    scanner.parse_config("disable")
+    scanner.parse_config("qrcode.enable")
 
-    # find the valid qr code positioning patterns and store the id in the set valid
-    valid = set()
-    for i in range(len(boxes)):
-        for j in range(i + 1, len(boxes)):
-            if check(boxes[i], boxes[j], bi_img):
-                valid.add(i)
-                valid.add(j)
-    print valid
+    success, symbol = scan(boxes, img_gray, scanner)
 
-    # put the valid contours of the qr code positioning patterns in contours_all
-    contour_all = np.array([])
-    if len(valid) > 0:
-        contour_all = contours[found[valid.pop()]]
+    if success:
+        print symbol.data
     else:
-        print "no qr code found"
-        exit(-1)
-
-    while len(valid) > 0:
-        c = found[valid.pop()]
-        contour_all = np.append(contour_all, contours[c], axis=0)
-
-    # find the bounding rectangle of contour_all
-    rect_x, rect_y, rect_w, rect_h = cv2.boundingRect(contour_all)
-
-    # mark out the qr code area in the image
-    draw_img = img.copy()
-    cv2.rectangle(draw_img, (rect_x, rect_y), (rect_x + rect_w, rect_y + rect_h), (0, 0, 255), 1)
-    cv2.imshow("Area", draw_img)
-    cv2.waitKey()
-
-    # crop the qr code area
-    qr_img = img_gray.copy()
-    qr_img = qr_img[rect_y:rect_y + rect_h, rect_x:rect_x + rect_w]
-    cv2.imshow("result", qr_img)
-    cv2.waitKey()
+        print "scanning failed."
 
     end = time.clock()
     print str((end - start) * 1000) + "ms"
