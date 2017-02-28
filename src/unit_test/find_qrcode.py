@@ -130,7 +130,7 @@ def draw_short_connections(a, b):
     cv2.line(draw_img, a2, b2, (0, 0, 255), 1)
 
 
-def check(a, b, binary_img):
+def check(a, b, binary_img, threshold):
     """
     check whether the two input Position Detection Pattern box a and b are in one qr code
     :param a: Position Detection Pattern box corner array a
@@ -161,16 +161,21 @@ def check(a, b, binary_img):
     a2 = (a2[0] + (a1[0] - a2[0]) * 1 / 14, a2[1] + (a1[1] - a2[1]) * 1 / 14)
     b2 = (b2[0] + (b1[0] - b2[0]) * 1 / 14, b2[1] + (b1[1] - b2[1]) * 1 / 14)
 
-    return is_timing_pattern(createLineIterator(a1, b1, binary_img)[:, 2]) or is_timing_pattern(
-        createLineIterator(a2, b2, binary_img)[:, 2])
+    return is_timing_pattern(createLineIterator(a1, b1, binary_img)[:, 2], threshold) or is_timing_pattern(
+        createLineIterator(a2, b2, binary_img)[:, 2], threshold)
 
 
-def is_timing_pattern(line):
+def is_timing_pattern(line, threshold):
     """
     to judge wether the input line is a timing pattern
     :param line: input line
     :return: true if the line is a timing pattern
     """
+
+    #ignore too short line
+    if len(line) < 10:
+        return False
+
     # 除去开头结尾的白色像素点
     #while line[0] != 0:
     #    line = line[1:]
@@ -189,13 +194,13 @@ def is_timing_pattern(line):
                 c.append(count)
             count = 1
         l = p
-    if count > 2:
+    if count > 1:
         c.append(count)
     # 如果黑白间隔太少，直接排除
     if len(c) < 5:
         return False
     # 计算方差，根据离散程度判断是否是 Timing Pattern
-    threshold = 5
+    #threshold = 5
     return np.var(c) < threshold
 
 
@@ -233,7 +238,7 @@ def find_contour_corner(contour):
     else:
         rect = cv2.minAreaRect(contour)
         box = cv2.boxPoints(rect)
-        box = np.int(box)
+        box = np.int0(box)
         return box
 
 
@@ -241,14 +246,16 @@ def is_valid_symbol(symbol_string):
     return True
 
 
-def scan(boxes, gray_img, zbar_scanner):
+def scan(boxes, gray_img, zbar_scanner, bi_threshold, timing_pattern_threshold):
     """
     this function scan the image and select one area that contains a valid qr code
     :param boxes:
     :return:
     """
-
-    th, bi_img = cv2.threshold(gray_img, 75, 255, cv2.THRESH_BINARY)
+    he_img = cv2.equalizeHist(gray_img)
+    th, bi_img = cv2.threshold(he_img, bi_threshold, 255, cv2.THRESH_BINARY)
+    cv2.imshow("binary", bi_img)
+    cv2.waitKey(1)
     current_state = "ZERO"  # state includes "ZERO", "ONE", "TWO", "MORE","FAIL"
     next_state = "ZERO"
     qr_boxes_candidate = deque()
@@ -266,7 +273,7 @@ def scan(boxes, gray_img, zbar_scanner):
             candidate_i.clear()
             candidate_i.append(0)
             for i in range(1, len(boxes)):
-                if check(boxes[0], boxes[i], bi_img):
+                if check(boxes[0], boxes[i], bi_img, timing_pattern_threshold):
                     candidate_i.append(i)
 
             valid_count = len(candidate_i)
@@ -295,7 +302,7 @@ def scan(boxes, gray_img, zbar_scanner):
                 continue
             candidate_i.clear()
             for i in range(0, len(boxes)):
-                if check(qr_boxes_candidate[1], boxes[i], bi_img):
+                if check(qr_boxes_candidate[1], boxes[i], bi_img, timing_pattern_threshold):
                     candidate_i.append(i)
             valid_count = len(candidate_i)
             if valid_count == 0:
@@ -335,7 +342,9 @@ def scan(boxes, gray_img, zbar_scanner):
                 qr_boxes_candidate.clear()
                 next_state = "ZERO"
         elif current_state == "MORE":
-            pass
+            success = False
+            result_symbol = ""
+            break
         elif current_state == "FAIL":
             # handle exceptional situations
             success = False
@@ -346,83 +355,135 @@ def scan(boxes, gray_img, zbar_scanner):
 
     return [success, result_symbol]
 
+def nothing(x):
+    pass
+
 
 if __name__ == "__main__":
 
-    start = time.clock()
+    cv2.namedWindow('image')
+    cv2.createTrackbar('canny_1','image',200,1000,nothing)
+    cv2.createTrackbar('canny_2','image',600,1000,nothing)
+    cv2.createTrackbar('canny_a','image',3,50,nothing)
+    cv2.createTrackbar('gau_k_size','image',1,50,nothing)
+    cv2.createTrackbar('gau_sigma','image',2,50,nothing)
+    cv2.createTrackbar('bi_threshold','image',150,255,nothing)
+    cv2.createTrackbar('timing_threshold', 'image', 5, 50, nothing)
+    cap = cv2.VideoCapture(0)
 
-    img = cv2.imread("/home/edward/workspace/qrcode_positioning/resources/640/1.jpg")
-    # #cv2.imshow("test", img)
-    # cv2.waitKey()
+    if not cap.isOpened():
+        print "failed to open the camera"
+        exit(-1)
 
-    # pre-processings for the input images
-
-    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    img_gb = cv2.GaussianBlur(img_gray, (3, 3), 2)
-
-    edges = cv2.Canny(img_gray, 30, 200, 3)
-
-    # 使用形态学闭合操作有效弥合一些边缘图中二位码定位点的缺口
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
-    closing = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
-
-    # cv2.imshow("edges", edges)
-    cv2.waitKey()
-
-    # cv2.imshow("closing", closing)
-    cv2.waitKey()
-
-    # find contours in the image
-
-    img_fc, contours, hierarchy = cv2.findContours(closing, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-    hierarchy = hierarchy[0]
-    found = []
-
-    # find the qr code positioning patterns in the image
-    for i in range(len(contours)):
-        k = i
-        c = 0
-        while hierarchy[k][2] != -1:
-            k = hierarchy[k][2]
-            c += 1
-        if c >= 5:
-            found.append(i)
-
-    # draw the found qr code positioning pattern contours
-    for i in found:
-        img_dc = img.copy()
-        cv2.drawContours(img_dc, contours, i, (0, 255, 0), 1)
-        # cv2.imshow("contour", img_dc)
-        cv2.waitKey()
-
-    # find the contour corners and draw in the image
-    draw_img = img.copy()
-    for i in found:
-        box = find_contour_corner(contours[i])
-        cv2.drawContours(draw_img, [box], 0, (0, 0, 255), 2)
-    #cv2.imshow("draw_img", draw_img)
-    cv2.waitKey()
-
-    # find the contour corners and store the corners in boxes
-    boxes = []
-    for i in found:
-        box = find_contour_corner(contours[i])
-        box = map(tuple, box)
-        boxes.append(box)
+    cap.set(3, 640)
+    cap.set(4, 480)
 
     scanner = zbar.ImageScanner()
 
     scanner.parse_config("disable")
+    #scanner.enable_cache() # do not enable cache here
     scanner.parse_config("qrcode.enable")
 
-    success, symbol = scan(boxes, img_gray, scanner)
+    while True:
 
-    if success:
-        print symbol.data
-    else:
-        print "scanning failed."
+        ret, img = cap.read()
+        cv2.imshow("image", img)
+        cv2.waitKey(1)
+        if not ret:
+            continue
 
-    end = time.clock()
-    print str((end - start) * 1000) + "ms"
+
+
+        start = time.clock()
+
+        #img = cv2.imread("/home/edward/workspace/qrcode_positioning/resources/640/4.jpg")
+        # #cv2.imshow("test", img)
+        # cv2.waitKey()
+
+        # pre-processings for the input images
+
+
+
+
+        threshold_1 = cv2.getTrackbarPos('canny_1', 'image')
+        threshold_2 = cv2.getTrackbarPos('canny_2', 'image')
+        apeture = cv2.getTrackbarPos('canny_a','image')/ 2 * 2 + 1 # rounded to a odd number
+        gau_k_size = cv2.getTrackbarPos('gau_k_size','image')/2 * 2 +1 # rounded to a odd number
+        gau_sig = cv2.getTrackbarPos('gau_sigma','image') # rounded to a odd number
+
+        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        img_he = cv2.equalizeHist(img_gray)
+
+        img_gb = cv2.GaussianBlur(img_he, (gau_k_size, gau_k_size), gau_sig)
+
+        edges = cv2.Canny(img_gb, threshold_1, threshold_2, apeture)
+
+
+
+        # 使用形态学闭合操作有效弥合一些边缘图中二位码定位点的缺口
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+        closing = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
+
+        cv2.imshow("edges", edges)
+        cv2.waitKey(1)
+
+        cv2.imshow("closing", closing)
+        cv2.waitKey(1)
+
+        # find contours in the image
+
+        img_fc, contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+        if len(contours) == 0:
+            continue
+
+
+        hierarchy = hierarchy[0]
+        found = []
+
+        # find the qr code positioning patterns in the image
+        for i in range(len(contours)):
+            k = i
+            c = 0
+            while hierarchy[k][2] != -1:
+                k = hierarchy[k][2]
+                c += 1
+            if c >= 5:
+                found.append(i)
+
+        # draw the found qr code positioning pattern contours
+        img_dc = img.copy()
+        for i in found:
+            cv2.drawContours(img_dc, contours, i, (0, 255, 0), 1)
+        cv2.imshow("contour", img_dc)
+        cv2.waitKey(1)
+
+        # find the contour corners and draw in the image
+        draw_img = img.copy()
+        for i in found:
+            box = find_contour_corner(contours[i])
+            cv2.drawContours(draw_img, [box], 0, (0, 0, 255), 2)
+        cv2.imshow("draw_img", draw_img)
+        cv2.waitKey(1)
+
+        # find the contour corners and store the corners in boxes
+        boxes = []
+        for i in found:
+            box = find_contour_corner(contours[i])
+            box = map(tuple, box)
+            boxes.append(box)
+
+        bi_threshold = cv2.getTrackbarPos("bi_threshold","image")
+        timing_pattern_threshold = cv2.getTrackbarPos("timing_threshold","image")
+        success, symbol = scan(boxes, img_gb, scanner,bi_threshold, timing_pattern_threshold)
+
+        if success:
+            print symbol.data
+            end = time.clock()
+            print str((end - start) * 1000) + "ms"
+        else:
+            pass
+            #print "scanning failed."
+
+
