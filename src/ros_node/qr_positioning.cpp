@@ -173,6 +173,7 @@ int main(int argc, char **argv)
     //broadcast marker basis
     marker_basis_br.sendTransform(marker_basis_transform_stamped);
 
-    ros::spin();
-
+    //ros::spin();
+    ros::MultiThreadedSpinner spinner(4);
+    spinner.spin();
 }
