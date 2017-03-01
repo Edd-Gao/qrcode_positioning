@@ -253,7 +253,20 @@ def scan(boxes, gray_img, zbar_scanner, bi_threshold, timing_pattern_threshold):
     :return:
     """
     he_img = cv2.equalizeHist(gray_img)
+
+    pixels = np.array([])
+    #meter the average intensity of the boxes
+
+    if len(boxes) >0:
+
+        for box in boxes:
+            box_x, box_y, box_w, box_h = cv2.boundingRect(np.array(box))
+            temp_img = gray_img[box_y:box_y+box_h, box_x:box_x + box_w]
+            pixels = np.append(pixels, temp_img)
+        bi_threshold = np.average(pixels)
+
     th, bi_img = cv2.threshold(he_img, bi_threshold, 255, cv2.THRESH_BINARY)
+
     cv2.imshow("binary", bi_img)
     cv2.waitKey(1)
     current_state = "ZERO"  # state includes "ZERO", "ONE", "TWO", "MORE","FAIL"
