@@ -1,0 +1,16 @@
+<launch>
+    <node pkg="raspicam" type="raspicam_raw_node" name="camera">
+        <param name="framerate" value="30"/>
+        <param name="width" value= "640" />
+        <param name="height" value="480" />
+        <param name="format" value="LUMA" />
+        <remap from="/camera/image" to="/camera/image_raw" />
+    </node>
+
+    <node name="positioning" pkg="qrcode_positioning" type="test_bar_code" >
+    </node>
+
+    <node name="view" pkg="image_view" type="image_view" args=" image:=/camera/image_raw raw" >
+    </node>
+
+</launch>

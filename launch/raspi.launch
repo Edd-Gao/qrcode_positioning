@@ -1,0 +1,12 @@
+<launch>
+    <node pkg="raspicam" type="raspicam_raw_node" name="camera">
+        <param name="framerate" value="30"/>
+        <param name="width" value= "480" />
+        <param name="height" value="320" />
+        <param name="format" value="LUMA" />
+        <remap from="/camera/image" to="/camera/image_raw" />
+    </node>
+
+    <node pkg="qrcode_positioning" type="qrcode_positioning_node" args="-f /home/can/catkin_ws/src/qrcode_positioning/calibrations/rpi_cam_v2_480_320.ini --" name="qrcode_positioning">
+    </node>
+</launch>
