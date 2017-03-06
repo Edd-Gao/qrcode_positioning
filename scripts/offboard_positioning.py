@@ -7,9 +7,11 @@ import numpy as np
 import math
 import time
 import zbar
+import argparse
 
 # ROS libraries
 import rospy
+import camera_calibration_parsers
 
 # import compressed image message
 from sensor_msgs.msg import CompressedImage
@@ -447,8 +449,23 @@ class OffboardPos:
 
 
 def main(args):
+
+    # parse calibration files
+    parser = argparse.ArgumentParser(description='offboard QR code positioning node')
+    parser.add_argument('-f', '--file', type=str, help='calibration file path')
+    args = parser.parse_args()
+
+    try:
+        camera_name, camera_info = camera_calibration_parsers.readCalibration(args.file)
+    except TypeError:
+        rospy.logerr("failed to parse the calibration file.")
+        exit(-1)
+
+
     rospy.init_node('offoard_pos', anonymous=True)
     positioner = OffboardPos()
+
+
 
     try:
         rospy.spin()
