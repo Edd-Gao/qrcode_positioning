@@ -10,3 +10,5 @@ try:
     name, info = parser.readCalibration('rpi_cam_v2_640_480.yml')
 except TypeError:
     print "error reading calibrations."
+
+print name

@@ -8,10 +8,15 @@ import math
 import time
 import zbar
 import argparse
+import string
 
 # ROS libraries
 import rospy
 import camera_calibration_parsers
+import tf2_ros
+import tf_conversions
+import geometry_msgs.msg
+
 
 # import compressed image message
 from sensor_msgs.msg import CompressedImage
@@ -27,8 +32,11 @@ class OffboardPos:
     bi_threshold = 150  # binary image threshold
     timing_threshold = 5  # timing pattern variance threshold
 
-    def __init__(self):
-        self.imgSub = rospy.Subscriber("/camera/image_mono/compressed", CompressedImage, self.callback, queue_size=1)
+    def __init__(self, camera_info, image_compressed):
+        self.distortion_coeffs = np.array(camera_info.D)
+        self.camera_matrix = np.array(camera_info.K).reshape((3, 3))
+
+        self.imgSub = rospy.Subscriber(image_compressed, CompressedImage, self.callback, queue_size=1)
 
         self.scanner = zbar.ImageScanner()
 
@@ -58,13 +66,13 @@ class OffboardPos:
 
         # difference and absolute difference between points
         # used to calculate slope and relative location between points
-        dX = p2_x - p1_x
-        dY = p2_y - p1_y
-        dXa = np.abs(dX)
-        dYa = np.abs(dY)
+        d_x = p2_x - p1_x
+        d_y = p2_y - p1_y
+        d_xa = np.abs(d_x)
+        d_ya = np.abs(d_y)
 
         # predefine numpy array for output based on distance between points
-        it_buffer = np.empty(shape=(np.maximum(dYa, dXa), 3), dtype=np.float32)
+        it_buffer = np.empty(shape=(np.maximum(d_ya, d_xa), 3), dtype=np.float32)
         it_buffer.fill(np.nan)
 
         # Obtain coordinates along the line using a form of Bresenham's algorithm
@@ -73,30 +81,30 @@ class OffboardPos:
         if p1_x == p2_x:  # vertical line segment
             it_buffer[:, 0] = p1_x
             if neg_y:
-                it_buffer[:, 1] = np.arange(p1_y - 1, p1_y - dYa - 1, -1)
+                it_buffer[:, 1] = np.arange(p1_y - 1, p1_y - d_ya - 1, -1)
             else:
-                it_buffer[:, 1] = np.arange(p1_y + 1, p1_y + dYa + 1)
+                it_buffer[:, 1] = np.arange(p1_y + 1, p1_y + d_ya + 1)
         elif p1_y == p2_y:  # horizontal line segment
             it_buffer[:, 1] = p1_y
             if neg_x:
-                it_buffer[:, 0] = np.arange(p1_x - 1, p1_x - dXa - 1, -1)
+                it_buffer[:, 0] = np.arange(p1_x - 1, p1_x - d_xa - 1, -1)
             else:
-                it_buffer[:, 0] = np.arange(p1_x + 1, p1_x + dXa + 1)
+                it_buffer[:, 0] = np.arange(p1_x + 1, p1_x + d_xa + 1)
         else:  # diagonal line segment
-            steep_slope = dYa > dXa
+            steep_slope = d_ya > d_xa
             if steep_slope:
-                slope = dX.astype(np.float32) / dY.astype(np.float32)
+                slope = d_x.astype(np.float32) / d_y.astype(np.float32)
                 if neg_y:
-                    it_buffer[:, 1] = np.arange(p1_y - 1, p1_y - dYa - 1, -1)
+                    it_buffer[:, 1] = np.arange(p1_y - 1, p1_y - d_ya - 1, -1)
                 else:
-                    it_buffer[:, 1] = np.arange(p1_y + 1, p1_y + dYa + 1)
+                    it_buffer[:, 1] = np.arange(p1_y + 1, p1_y + d_ya + 1)
                 it_buffer[:, 0] = (slope * (it_buffer[:, 1] - p1_y)).astype(np.int) + p1_x
             else:
-                slope = dY.astype(np.float32) / dX.astype(np.float32)
+                slope = d_y.astype(np.float32) / d_x.astype(np.float32)
                 if neg_x:
-                    it_buffer[:, 0] = np.arange(p1_x - 1, p1_x - dXa - 1, -1)
+                    it_buffer[:, 0] = np.arange(p1_x - 1, p1_x - d_xa - 1, -1)
                 else:
-                    it_buffer[:, 0] = np.arange(p1_x + 1, p1_x + dXa + 1)
+                    it_buffer[:, 0] = np.arange(p1_x + 1, p1_x + d_xa + 1)
                 it_buffer[:, 1] = (slope * (it_buffer[:, 0] - p1_x)).astype(np.int) + p1_y
 
         # Remove points outside of image
@@ -232,7 +240,8 @@ class OffboardPos:
         """
         find the Position Detection Pattern contour corners
         :param contour: the contour end points in a ndarray
-        :return: if the algorithm succeed, it returns the corners of the contour in a ndarray, or it returns the corners of the minimum area rectangle containing the pattern
+        :return: if the algorithm succeed, it returns the corners of the contour in a ndarray,
+        or it returns the corners of the minimum area rectangle containing the pattern
         """
         i = 0
         # temp_result = np.array([[0,0]])
@@ -268,6 +277,87 @@ class OffboardPos:
     def is_valid_symbol(self, symbol_string):
         return True
 
+    def parse_symbol_data(self, symbol_data):
+        success = True
+        edge_length = 0
+        center_location = [0, 0]
+        scaler = 1
+
+        temp = string.split(symbol_data, ",")
+
+        if len(temp) != 4:
+            print "wrong symbol data, argument number is not 4"
+            success = False
+        else:
+            if temp[0] == 'mm':
+                scaler = 0.001
+            elif temp[0] == 'cm':
+                scaler = 0.01
+            elif temp[0] == 'dm':
+                scaler = 0.1
+            elif temp[0] == 'm':
+                scaler = 1
+            else:
+                print "wrong unit in symbol"
+                success = False
+
+        if success:
+            edge_length = int(temp[1]) * scaler
+            center_location = [int(temp[2]) * scaler, int(temp[3]) * scaler]
+
+        return success, edge_length, center_location
+
+    def symbol_to_matrix(self, symbol_data, image_points):
+        '''
+
+
+        :return:
+        '''
+
+        success, edge_length, center_location = self.parse_symbol_data(symbol_data)
+
+        if not success:
+            pass
+        else:
+            half_length = edge_length / 2
+            object_points = [
+                [center_location[0] - half_length, center_location[1] - half_length, 0],
+                [center_location[0] + half_length, center_location[1] - half_length, 0],
+                [center_location[0] + half_length, center_location[1] + half_length, 0],
+                [center_location[0] - half_length, center_location[1] + half_length, 0]
+            ]
+
+            retval, rvec, tvec = cv2.solvePnP(object_points, image_points, self.camera_matrix, self.distortion_coeffs)
+            rotation_matrix, jacobian = cv2.Rodrigues(rvec)
+            view_matrix = np.zeros((4, 4))
+            view_matrix[0:3, 0:3] = rotation_matrix
+            view_matrix[0:3, 3] = tvec
+            view_matrix[3, 3] = 1
+            view_matrix = np.invert(view_matrix)
+
+            rotation_matrix = view_matrix  # view_matrix or rotation_matrix produce same quaternion in tf_conversions
+            translation_vec = view_matrix[0:3, 3]
+
+            return success, rotation_matrix, translation_vec
+
+    def publish_tf(self, rotation_matrix, translation_vec):
+        br = tf2_ros.TransformBroadcaster()
+        t = geometry_msgs.msg.TransformStamped()
+
+        t.header.stamp = rospy.Time.now()
+        t.header.frame_id = "marker_frame"
+        t.child_frame_id = "camera"
+        t.transform.translation.x = translation_vec[0]
+        t.transform.translation.y = translation_vec[1]
+        t.transform.translation.z = translation_vec[2]
+        q = tf_conversions.transformations.quaternion_from_matrix(rotation_matrix)
+        t.transform.rotation.x = q[0]
+        t.transform.rotation.y = q[1]
+        t.transform.rotation.z = q[2]
+        t.transform.rotation.w = q[3]
+
+        br.sendTransform(t)
+
     def scan(self, boxes, gray_img, zbar_scanner, bi_threshold, timing_pattern_threshold):
         """
         this function scan the image and select one area that contains a valid qr code
@@ -298,6 +388,8 @@ class OffboardPos:
         qr_boxes_candidate = deque()
         success = False
         result_symbol = ""
+        result_data = ""
+        result_location = np.array([])
         candidate_i = deque()
 
         while True:
@@ -373,24 +465,27 @@ class OffboardPos:
                         success = True
                         result_symbol = symbol
                 del zbar_img
-                if (success):
+                if success:
+                    # adjust the location
+                    result_location = np.array(result_symbol.location)
+                    result_location[0:4, 0] += x
+                    result_location[0, 0:4] += y
+                    result_data = result_symbol.data
                     break
                 else:
                     qr_boxes_candidate.clear()
                     next_state = "ZERO"
             elif current_state == "MORE":
                 success = False
-                result_symbol = ""
                 break
             elif current_state == "FAIL":
                 # handle exceptional situations
                 success = False
-                result_symbol = ""
                 break
             else:
                 pass
 
-        return [success, result_symbol]
+        return [success, result_data, result_location]
 
     def callback(self, ros_data):
         np_arr = np.fromstring(ros_data.data, np.uint8)
@@ -433,16 +528,18 @@ class OffboardPos:
             box = map(tuple, box)
             boxes.append(box)
 
-        cv2.imshow("boxes",draw_img)
+        cv2.imshow("boxes", draw_img)
         cv2.waitKey(20)
 
-        success, symbol = self.scan(boxes, img_gb, self.scanner, self.bi_threshold, self.timing_threshold)
+        success, symbol_location, symbol_data = self.scan(boxes, img_gb, self.scanner, self.bi_threshold, self.timing_threshold)
 
         if success:
-            rospy.loginfo(symbol.data)
-            print symbol.data
+            rospy.loginfo(symbol_data)
             end = time.clock()
-            print str((end - start) * 1000) + "ms"
+            rospy.loginfo(str((end - start) * 1000) + "ms")
+
+            success, rotation_matrix, translation_vec = self.symbol_to_matrix(symbol_data, symbol_location)
+            self.publish_tf(rotation_matrix, translation_vec)
         else:
             pass
             # print "scanning failed."
@@ -461,11 +558,8 @@ def main(args):
         rospy.logerr("failed to parse the calibration file.")
         exit(-1)
 
-
     rospy.init_node('offoard_pos', anonymous=True)
-    positioner = OffboardPos()
-
-
+    positioner = OffboardPos(camera_info, "/camera/image_mono/compressed")
 
     try:
         rospy.spin()

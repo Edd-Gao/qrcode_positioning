@@ -4,6 +4,7 @@
 import zbar
 import Image
 import cv2
+import numpy as np
 
 # create a reader
 import time
