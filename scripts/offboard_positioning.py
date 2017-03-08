@@ -314,31 +314,41 @@ class OffboardPos:
         :return:
         '''
 
+        rotation_matrix = np.array([])
+        translation_vec = np.array([])
+
         success, edge_length, center_location = self.parse_symbol_data(symbol_data)
 
         if not success:
-            pass
+            success = False
         else:
             half_length = edge_length / 2
-            object_points = [
+            object_points = np.array([
                 [center_location[0] - half_length, center_location[1] - half_length, 0],
                 [center_location[0] + half_length, center_location[1] - half_length, 0],
                 [center_location[0] + half_length, center_location[1] + half_length, 0],
                 [center_location[0] - half_length, center_location[1] + half_length, 0]
-            ]
+            ])
 
             retval, rvec, tvec = cv2.solvePnP(object_points, image_points, self.camera_matrix, self.distortion_coeffs)
             rotation_matrix, jacobian = cv2.Rodrigues(rvec)
             view_matrix = np.zeros((4, 4))
             view_matrix[0:3, 0:3] = rotation_matrix
-            view_matrix[0:3, 3] = tvec
+            view_matrix[0:3, 3] = tvec.reshape((1, 3))
             view_matrix[3, 3] = 1
-            view_matrix = np.invert(view_matrix)
 
-            rotation_matrix = view_matrix  # view_matrix or rotation_matrix produce same quaternion in tf_conversions
-            translation_vec = view_matrix[0:3, 3]
+            try:
+                view_matrix = np.linalg.inv(view_matrix)
+            except np.linalg.LinAlgError:
+                rospy.logerr("view matrix inversion error")
+                success = False
 
-            return success, rotation_matrix, translation_vec
+            if success:
+                rotation_matrix = view_matrix  # view_matrix or rotation_matrix produce same quaternion in tf_conversions
+                translation_vec = view_matrix[0:3, 3]
+        # end of else
+
+        return success, rotation_matrix, translation_vec
 
     def publish_tf(self, rotation_matrix, translation_vec):
         br = tf2_ros.TransformBroadcaster()
@@ -470,6 +480,7 @@ class OffboardPos:
                     result_location = np.array(result_symbol.location)
                     result_location[0:4, 0] += x
                     result_location[0, 0:4] += y
+                    result_location = np.float64(result_location)
                     result_data = result_symbol.data
                     break
                 else:
@@ -531,7 +542,7 @@ class OffboardPos:
         cv2.imshow("boxes", draw_img)
         cv2.waitKey(20)
 
-        success, symbol_location, symbol_data = self.scan(boxes, img_gb, self.scanner, self.bi_threshold, self.timing_threshold)
+        success, symbol_data, symbol_location = self.scan(boxes, img_gb, self.scanner, self.bi_threshold, self.timing_threshold)
 
         if success:
             rospy.loginfo(symbol_data)
